@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+  <head>
+    <title>מפה עובדת - 0.2</title>
+    <meta charset="utf-8" />
+    <!-- צריך החלפה של אייקון הבט -->
+    <link rel="icon" href="assets/hebetIcon.jpg" />
+    <link rel="stylesheet" href="lib/leaflet.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="lib/leaflet.js"></script>
+    <script src="main.js"></script>
+  </head>
+
+  <body>
+    <div id="map" class="map"></div>
+
+    <!-- container -->
+    <div class="container">
+      <div class="searchBlock">
+        <img class="hebetLogo" src="assets/HebetLogo.png" alt="hebetLogo" />
+        <div id="logos" class="logos">
+          <img src="assets/zroaHyabasha.png" alt="zroaHyabasha" />
+          <img src="assets/zroaHyabasha.png" alt="zroaHyabasha" />
+        </div>
+        <h3>מאגר מתקני אימון ארצי</h3>
+        <input
+          type="text"
+          id="search"
+          class="search"
+          placeholder="הקלד שורת חיפוש..."
+        />
+        <div id="filterType" class="filtering">
+          <div id="filterTypeHeader" class="filteringHeader">
+            <p class="filteringText">סוג מתקן</p>
+            <div id="filterTypeIcon" class="filteringIcon"></div>
+          </div>
+          <div id="filterOptionsType" class="filterOptions">
+            <span>
+              <input id="mitvahimInput" type="checkbox" />
+              <p>מטווחים</p>
+            </span>
+            <span>
+              <input id="lashbitMeholotInput" type="checkbox" />
+              <p>לש"בית מכולות</p>
+            </span>
+            <span>
+              <input id="lashbitEzInput" type="checkbox" />
+              <p>לש"בית עץ</p>
+            </span>
+            <span>
+              <input id="hederYeryInput" type="checkbox" />
+              <p>חדר ירי</p>
+            </span>
+          </div>
+        </div>
+        <div id="filterArea" class="filtering">
+          <div id="filterAreaHeader" class="filteringHeader">
+            <p class="filteringText">אזור בארץ</p>
+            <div id="filterAreaIcon" class="filteringIcon"></div>
+          </div>
+          <div id="filterOptionsArea" class="filterOptions">
+            <span>
+              <input id="zafonInput" type="checkbox" />
+              <p>צפון</p>
+            </span>
+            <span>
+              <input id="mercazInput" type="checkbox" />
+              <p>מרכז</p>
+            </span>
+            <span>
+              <input id="daromInput" type="checkbox" />
+              <p>דרום</p>
+            </span>
+          </div>
+        </div>
+        <div id="filterTags" class="filterTags">
+          <!-- <span class="filterTag">
+            <p class="tagClose">&times;</p>
+            <p class="tagText">מטווחים</p>
+          </span> -->
+        </div>
+      </div>
+      <div id="cards" class="cards">
+        <!-- <div class="card">
+          <h3 id="cardTitle" class="cardTitle">שם המתקן</h3>
+          <div id="cardAddress" class="cardAddress">
+            <span id="cardAddressIcon" class="cardAddressIcon"></span>
+            <p id="cardAddressText" class="cardAddressText">כתובת של המקום, בסיס</p>
+          </div>
+          <div id="cardTags" class="cardTags">
+            <span class="cardTag lashbitMeholot">
+              <div class="tagIcon"></div>
+              <p class="tagType">לש"בית מכולות</p>
+            </span>
+            <span class="cardTag mitvahim">
+              <div class="tagIcon"></div>
+              <p class="tagType">מטווחים</p>
+            </span>
+            <span class="cardTag hederYery">
+              <div class="tagIcon"></div>
+              <p class="tagType">חדר ירי</p>
+            </span>
+            <span class="cardTag lashbitEz">
+              <div class="tagIcon"></div>
+              <p class="tagType">לש"בית עץ</p>
+            </span>
+          </div>
+        </div> -->
+      </div>
+    </div>
+
+    <!-- popUp -->
+    <div id="popUpBackground" class="popUpBackground">
+      <div id="popUp" class="popUp">
+        <div id="popUpBody" class="popUpBody">
+          <div id="popUpHeader" class="popUpHeader">
+            <div id="titleContainer" class="titleContainer">
+              <h2 id="popUpTitle" class="popUpTitle"></h2>
+              <p id="popUpSubTitle" class="popUpSubTitle"></p>
+            </div>
+            <div id="popUpNavBar" class="popUpNavBar">
+              <p class="navItemPressed">חדר ירי</p>
+              <p class="navItem">לש"בית עץ</p>
+              <p class="navItem">לש"בית מכולות</p>
+              <p class="navItem">מטווחים</p>
+            </div>
+          </div>
+          <div id="popUpInfoContainer" class="popUpInfoContainer">
+            <span id="unit" class="info">
+              <span id="unitTitle" class="title">
+                <span id="unitTitleIcon" class="titleIcon"></span>
+                <p>יחידה בעלת המתקן</p>
+              </span>
+              <p id="unitText" class="text">יחידה בעלת המתקן</p>
+            </span>
+            <span id="type" class="info">
+              <span id="typeTitle" class="title">
+                <span id="typeTitleIcon" class="titleIcon"></span>
+                <p>סוג המתקן</p>
+              </span>
+              <p id="typeText" class="text">סוג המתקן</p>
+            </span>
+            <span id="frame" class="info">
+              <span id="frameTitle" class="title">
+                <span id="frameTitleIcon" class="titleIcon"></span>
+                <p>מסגרת מתאמנת</p>
+              </span>
+              <p id="frameText" class="text">מסגרת מתאמנת</p>
+            </span>
+            <div id="options" class="options">
+              <p>סוגי אימון</p>
+              <div id="optionsContainer" class="optionsContainer"></div>
+            </div>
+            <div id="comments" class="comments">
+              <p id="commentsTitle" class="commentsTitle">הערות</p>
+              <p id="commentsText" class="commentsText">הערות הערות...</p>
+            </div>
+          </div>
+        </div>
+        <div id="popUpImgContainer" class="popUpImgContainer">
+          <div id="closePopUp" class="closePopUp">&times;</div>
+          <div id="bigImgBtn" class="bigImgBtn"></div>
+          <div id="imgArrows" class="imgArrows">
+            <div id="arrowR" class="imgArrow"></div>
+            <div id="arrowL" class="imgArrow"></div>
+          </div>
+          <div id="imgDots" class="imgDots"></div>
+        </div>
+        <div id="popUpBigImg" class="popUpBigImg">
+          <img id="imgBigImg" class="imgBigImg" src="" alt="bigImg" />
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

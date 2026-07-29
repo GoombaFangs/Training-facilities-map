@@ -1,0 +1,14 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="17.5" y="14.6716" width="4" height="20" rx="1" transform="rotate(135 17.5 14.6716)" fill="white"/>
+<rect x="17.5" y="17.2072" width="4" height="13" rx="1" transform="rotate(180 17.5 17.2072)" fill="white"/>
+<rect x="17.5" y="13.2072" width="4" height="13" rx="1" transform="rotate(90 17.5 13.2072)" fill="white"/>
+<rect x="25.3284" y="17.5" width="4" height="20" rx="1" transform="rotate(-135 25.3284 17.5)" fill="white"/>
+<rect x="22.7929" y="17.5" width="4" height="13" rx="1" transform="rotate(-90 22.7929 17.5)" fill="white"/>
+<rect x="26.7929" y="17.5" width="4" height="13" rx="1" transform="rotate(-180 26.7929 17.5)" fill="white"/>
+<rect x="14.6716" y="22.5" width="4" height="20" rx="1" transform="rotate(45 14.6716 22.5)" fill="white"/>
+<rect x="17.2071" y="22.5" width="4" height="13" rx="1" transform="rotate(90 17.2071 22.5)" fill="white"/>
+<rect x="13.2071" y="22.5" width="4" height="13" rx="1" fill="white"/>
+<rect x="22.5" y="25.3284" width="4" height="20" rx="1" transform="rotate(-45 22.5 25.3284)" fill="white"/>
+<rect x="22.5" y="22.7928" width="4" height="13" rx="1" fill="white"/>
+<rect x="22.5" y="26.7928" width="4" height="13" rx="1" transform="rotate(-90 22.5 26.7928)" fill="white"/>
+</svg>
