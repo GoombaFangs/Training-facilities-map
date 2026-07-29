@@ -1,175 +1,326 @@
 <!doctype html>
-<html>
+<html lang="he" dir="rtl">
   <head>
-    <title>מפה עובדת - 0.2</title>
     <meta charset="utf-8" />
-    <!-- צריך החלפה של אייקון הבט -->
-    <link rel="icon" href="assets/hebetIcon.jpg" />
-    <link rel="stylesheet" href="lib/leaflet.css" />
-    <link rel="stylesheet" href="style.css" />
-    <script src="lib/leaflet.js"></script>
-    <script src="main.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>מאגר מתקני אימון ארצי</title>
+    <link rel="icon" href="/assets/hebetIcon.jpg" />
   </head>
 
   <body>
-    <div id="map" class="map"></div>
-
-    <!-- container -->
-    <div class="container">
-      <div class="searchBlock">
-        <img class="hebetLogo" src="assets/HebetLogo.png" alt="hebetLogo" />
-        <div id="logos" class="logos">
-          <img src="assets/zroaHyabasha.png" alt="zroaHyabasha" />
-          <img src="assets/zroaHyabasha.png" alt="zroaHyabasha" />
-        </div>
-        <h3>מאגר מתקני אימון ארצי</h3>
-        <input
-          type="text"
-          id="search"
-          class="search"
-          placeholder="הקלד שורת חיפוש..."
-        />
-        <div id="filterType" class="filtering">
-          <div id="filterTypeHeader" class="filteringHeader">
-            <p class="filteringText">סוג מתקן</p>
-            <div id="filterTypeIcon" class="filteringIcon"></div>
-          </div>
-          <div id="filterOptionsType" class="filterOptions">
-            <span>
-              <input id="mitvahimInput" type="checkbox" />
-              <p>מטווחים</p>
-            </span>
-            <span>
-              <input id="lashbitMeholotInput" type="checkbox" />
-              <p>לש"בית מכולות</p>
-            </span>
-            <span>
-              <input id="lashbitEzInput" type="checkbox" />
-              <p>לש"בית עץ</p>
-            </span>
-            <span>
-              <input id="hederYeryInput" type="checkbox" />
-              <p>חדר ירי</p>
-            </span>
+    <div id="roleGate" class="roleGate">
+      <div class="roleGateCard">
+        <div id="roleGateIntro" class="roleGateIntro">
+          <img class="roleGateLogo" src="/assets/HebetLogo.png" alt="לוגו הבט" />
+          <h1>מאגר מתקני אימון ארצי</h1>
+          <p class="roleGateSubtitle">בחרו סוג משתמש להמשך</p>
+          <div class="roleGateActions">
+            <button type="button" id="chooseGuest" class="roleBtn roleBtnGuest">
+              אורח
+            </button>
+            <button type="button" id="chooseAdmin" class="roleBtn roleBtnAdmin">
+              מנהל
+            </button>
           </div>
         </div>
-        <div id="filterArea" class="filtering">
-          <div id="filterAreaHeader" class="filteringHeader">
-            <p class="filteringText">אזור בארץ</p>
-            <div id="filterAreaIcon" class="filteringIcon"></div>
-          </div>
-          <div id="filterOptionsArea" class="filterOptions">
-            <span>
-              <input id="zafonInput" type="checkbox" />
-              <p>צפון</p>
-            </span>
-            <span>
-              <input id="mercazInput" type="checkbox" />
-              <p>מרכז</p>
-            </span>
-            <span>
-              <input id="daromInput" type="checkbox" />
-              <p>דרום</p>
-            </span>
+        <div id="adminPasswordPanel" class="adminPasswordPanel" hidden>
+          <h2 class="adminPasswordTitle">כניסת מנהל</h2>
+          <label for="adminPassword">סיסמת מנהל</label>
+          <input
+            id="adminPassword"
+            type="password"
+            autocomplete="current-password"
+            placeholder="הזינו סיסמה"
+          />
+          <p id="adminPasswordError" class="adminPasswordError" hidden>
+            סיסמה שגויה
+          </p>
+          <div class="adminPasswordActions">
+            <button type="button" id="adminPasswordSubmit" class="roleBtn roleBtnAdmin">
+              כניסה
+            </button>
+            <button type="button" id="adminPasswordCancel" class="roleBtn roleBtnGhost">
+              הקודם
+            </button>
           </div>
         </div>
-        <div id="filterTags" class="filterTags">
-          <!-- <span class="filterTag">
-            <p class="tagClose">&times;</p>
-            <p class="tagText">מטווחים</p>
-          </span> -->
-        </div>
-      </div>
-      <div id="cards" class="cards">
-        <!-- <div class="card">
-          <h3 id="cardTitle" class="cardTitle">שם המתקן</h3>
-          <div id="cardAddress" class="cardAddress">
-            <span id="cardAddressIcon" class="cardAddressIcon"></span>
-            <p id="cardAddressText" class="cardAddressText">כתובת של המקום, בסיס</p>
-          </div>
-          <div id="cardTags" class="cardTags">
-            <span class="cardTag lashbitMeholot">
-              <div class="tagIcon"></div>
-              <p class="tagType">לש"בית מכולות</p>
-            </span>
-            <span class="cardTag mitvahim">
-              <div class="tagIcon"></div>
-              <p class="tagType">מטווחים</p>
-            </span>
-            <span class="cardTag hederYery">
-              <div class="tagIcon"></div>
-              <p class="tagType">חדר ירי</p>
-            </span>
-            <span class="cardTag lashbitEz">
-              <div class="tagIcon"></div>
-              <p class="tagType">לש"בית עץ</p>
-            </span>
-          </div>
-        </div> -->
       </div>
     </div>
 
-    <!-- popUp -->
-    <div id="popUpBackground" class="popUpBackground">
-      <div id="popUp" class="popUp">
-        <div id="popUpBody" class="popUpBody">
-          <div id="popUpHeader" class="popUpHeader">
-            <div id="titleContainer" class="titleContainer">
-              <h2 id="popUpTitle" class="popUpTitle"></h2>
-              <p id="popUpSubTitle" class="popUpSubTitle"></p>
+    <div id="appShell" class="appShell">
+      <div id="map" class="map"></div>
+      <div id="mapPickHint" class="mapPickHint" hidden>
+        לחצו על המפה כדי לבחור מיקום
+      </div>
+
+      <aside class="container">
+        <div class="searchBlock">
+          <div class="sidebarTop">
+            <img class="hebetLogo" src="/assets/HebetLogo.png" alt="לוגו הבט" />
+            <div id="logos" class="logos">
+              <img src="/assets/zroaHyabasha.png" alt="זרוע היבשה" />
             </div>
-            <div id="popUpNavBar" class="popUpNavBar">
-              <p class="navItemPressed">חדר ירי</p>
-              <p class="navItem">לש"בית עץ</p>
-              <p class="navItem">לש"בית מכולות</p>
-              <p class="navItem">מטווחים</p>
-            </div>
+            <span id="roleBadge" class="roleBadge" data-role="guest">אורח</span>
           </div>
-          <div id="popUpInfoContainer" class="popUpInfoContainer">
-            <span id="unit" class="info">
-              <span id="unitTitle" class="title">
-                <span id="unitTitleIcon" class="titleIcon"></span>
-                <p>יחידה בעלת המתקן</p>
-              </span>
-              <p id="unitText" class="text">יחידה בעלת המתקן</p>
-            </span>
-            <span id="type" class="info">
-              <span id="typeTitle" class="title">
-                <span id="typeTitleIcon" class="titleIcon"></span>
-                <p>סוג המתקן</p>
-              </span>
-              <p id="typeText" class="text">סוג המתקן</p>
-            </span>
-            <span id="frame" class="info">
-              <span id="frameTitle" class="title">
-                <span id="frameTitleIcon" class="titleIcon"></span>
-                <p>מסגרת מתאמנת</p>
-              </span>
-              <p id="frameText" class="text">מסגרת מתאמנת</p>
-            </span>
-            <div id="options" class="options">
-              <p>סוגי אימון</p>
-              <div id="optionsContainer" class="optionsContainer"></div>
+          <h1 class="appTitle">מאגר מתקני אימון ארצי</h1>
+
+          <div id="adminToolbar" class="adminToolbar" hidden>
+            <button type="button" id="addFacilityBtn" class="adminBtn adminBtnPrimary">
+              הוסף מתקן
+            </button>
+          </div>
+
+          <input
+            type="search"
+            id="search"
+            class="search"
+            placeholder="הקלד שורת חיפוש..."
+            autocomplete="off"
+          />
+
+          <div id="filterType" class="filtering">
+            <div id="filterTypeHeader" class="filteringHeader">
+              <p class="filteringText">סוג מתקן</p>
+              <div id="filterTypeIcon" class="filteringIcon" aria-hidden="true"></div>
             </div>
-            <div id="comments" class="comments">
-              <p id="commentsTitle" class="commentsTitle">הערות</p>
-              <p id="commentsText" class="commentsText">הערות הערות...</p>
+            <div id="filterOptionsType" class="filterOptions"></div>
+          </div>
+
+          <div id="filterArea" class="filtering">
+            <div id="filterAreaHeader" class="filteringHeader">
+              <p class="filteringText">אזור בארץ</p>
+              <div id="filterAreaIcon" class="filteringIcon" aria-hidden="true"></div>
             </div>
+            <div id="filterOptionsArea" class="filterOptions"></div>
+          </div>
+
+          <div id="filterTags" class="filterTags"></div>
+        </div>
+
+        <div id="cards" class="cards"></div>
+      </aside>
+    </div>
+
+    <div id="popUpBackground" class="popUpBackground">
+      <div id="popUp" class="popUp" role="dialog" aria-modal="true" aria-labelledby="popUpTitle">
+        <button type="button" id="closePopUp" class="closePopUp" aria-label="סגור">&times;</button>
+        <div id="popUpBody" class="popUpBody">
+          <header id="popUpHeader" class="popUpHeader">
+            <p class="popUpEyebrow">פרטי מתקן</p>
+            <h2 id="popUpTitle" class="popUpTitle"></h2>
+            <p id="popUpSubTitle" class="popUpSubTitle"></p>
+          </header>
+          <div id="popUpScroll" class="popUpScroll">
+            <div class="popUpMeta">
+              <div class="popUpMetaItem">
+                <span class="popUpMetaLabel">יחידה בעלת המתקן</span>
+                <span id="unitText" class="popUpMetaValue"></span>
+              </div>
+              <div class="popUpMetaItem">
+                <span class="popUpMetaLabel">סטטוס</span>
+                <span id="statusText" class="statusBadge"></span>
+              </div>
+              <div class="popUpMetaItem">
+                <span class="popUpMetaLabel">יצירת קשר</span>
+                <a id="contactPhoneLink" class="contactPhoneLink" href="#"></a>
+                <span id="contactPhoneEmpty" class="contactPhoneEmpty" hidden>לא צוין טלפון</span>
+              </div>
+            </div>
+            <div id="facilitySections" class="facilitySections"></div>
           </div>
         </div>
         <div id="popUpImgContainer" class="popUpImgContainer">
-          <div id="closePopUp" class="closePopUp">&times;</div>
-          <div id="bigImgBtn" class="bigImgBtn"></div>
+          <button type="button" id="bigImgBtn" class="bigImgBtn" aria-label="הגדל תמונה"></button>
           <div id="imgArrows" class="imgArrows">
-            <div id="arrowR" class="imgArrow"></div>
-            <div id="arrowL" class="imgArrow"></div>
+            <button type="button" id="arrowR" class="imgArrow" aria-label="תמונה הבאה"></button>
+            <button type="button" id="arrowL" class="imgArrow" aria-label="תמונה קודמת"></button>
           </div>
           <div id="imgDots" class="imgDots"></div>
         </div>
         <div id="popUpBigImg" class="popUpBigImg">
-          <img id="imgBigImg" class="imgBigImg" src="" alt="bigImg" />
+          <img id="imgBigImg" class="imgBigImg" src="" alt="תמונת מתקן" />
         </div>
       </div>
     </div>
+
+    <div id="facilityFormBackdrop" class="facilityFormBackdrop" hidden>
+      <form id="facilityForm" class="facilityForm" novalidate>
+        <header class="wizardHeader">
+          <div>
+            <p class="wizardEyebrow">ניהול מתקנים</p>
+            <h2 id="facilityFormTitle">הוספת מתקן</h2>
+          </div>
+          <button type="button" id="facilityFormCancel" class="wizardClose" aria-label="סגור">
+            &times;
+          </button>
+        </header>
+
+        <nav class="wizardSteps" aria-label="שלבי הטופס">
+          <button type="button" class="wizardStep is-active" data-step="1">
+            <span class="wizardStepNum">1</span>
+            <span class="wizardStepLabel">פרטים</span>
+          </button>
+          <span class="wizardStepLine" aria-hidden="true"></span>
+          <button type="button" class="wizardStep" data-step="2">
+            <span class="wizardStepNum">2</span>
+            <span class="wizardStepLabel">מיקום</span>
+          </button>
+          <span class="wizardStepLine" aria-hidden="true"></span>
+          <button type="button" class="wizardStep" data-step="3">
+            <span class="wizardStepNum">3</span>
+            <span class="wizardStepLabel">עיצוב</span>
+          </button>
+        </nav>
+
+        <p id="facilityFormError" class="wizardError" hidden></p>
+
+        <div class="wizardBody">
+          <section class="wizardPanel is-active" data-panel="1">
+            <p class="wizardPanelLead">בחרו מהרשימות — פחות הקלדה, יותר מהירות</p>
+            <div class="wizardGrid">
+              <label class="wizardField wizardFieldFull">
+                <span>שם המתקן</span>
+                <input id="formName" type="text" required placeholder="לדוגמה: מתקן אימון צפון" />
+              </label>
+              <label class="wizardField wizardFieldFull">
+                <span>יחידה בעלת המתקן</span>
+                <input id="formUnit" type="text" placeholder="שם היחידה" />
+              </label>
+              <label class="wizardField wizardFieldFull">
+                <span>יצירת קשר עם המתקן (טלפון)</span>
+                <input
+                  id="formPhone"
+                  type="tel"
+                  inputmode="tel"
+                  placeholder="לדוגמה: 03-1234567"
+                />
+              </label>
+              <div class="wizardField">
+                <span>סטטוס</span>
+                <select id="formStatus"></select>
+              </div>
+              <div class="wizardField">
+                <span>מיקום / בסיס</span>
+                <select id="formLocation" data-other-for="formLocationOther"></select>
+                <input
+                  id="formLocationOther"
+                  class="otherInput"
+                  type="text"
+                  hidden
+                  placeholder="הזינו מיקום אחר"
+                />
+              </div>
+              <div class="wizardField">
+                <span>אזור בארץ</span>
+                <select id="formAreaInTheCountry"></select>
+              </div>
+              <div class="wizardField">
+                <span>סוג מתקן</span>
+                <select id="formTypeOfFacility" data-other-for="formTypeOther"></select>
+                <input
+                  id="formTypeOther"
+                  class="otherInput"
+                  type="text"
+                  hidden
+                  placeholder="הזינו סוג מתקן אחר"
+                />
+              </div>
+              <div class="wizardField">
+                <span>סוג ספציפי</span>
+                <select id="formSpecificType" data-other-for="formSpecificOther"></select>
+                <input
+                  id="formSpecificOther"
+                  class="otherInput"
+                  type="text"
+                  hidden
+                  placeholder="הזינו סוג ספציפי אחר"
+                />
+              </div>
+              <div class="wizardField">
+                <span>מסגרת מתאמנת</span>
+                <select id="formTrainingFrame" data-other-for="formFrameOther"></select>
+                <input
+                  id="formFrameOther"
+                  class="otherInput"
+                  type="text"
+                  hidden
+                  placeholder="הזינו מסגרת אחרת"
+                />
+              </div>
+              <div class="wizardField wizardFieldFull">
+                <span>סוגי אימון</span>
+                <div id="formTrainingOptions" class="choiceChips" role="group" aria-label="סוגי אימון"></div>
+                <input
+                  id="formTrainingOther"
+                  class="otherInput"
+                  type="text"
+                  hidden
+                  placeholder="הזינו סוג אימון אחר"
+                />
+              </div>
+              <label class="wizardField wizardFieldFull">
+                <span>הערות</span>
+                <textarea id="formComments" rows="3" placeholder="מידע נוסף למשתמשים..."></textarea>
+              </label>
+            </div>
+          </section>
+
+          <section class="wizardPanel" data-panel="2">
+            <p class="wizardPanelLead">קבעו את מיקום המתקן על המפה</p>
+            <div class="locationCard">
+              <div class="locationCardText">
+                <h3>בחירה על המפה</h3>
+                <p>לחצו על הכפתור, ואז סמנו נקודה במפה. הקואורדינטות יתמלאו אוטומטית.</p>
+                <button type="button" id="pickOnMapBtn" class="wizardMapBtn">
+                  בחר מיקום על המפה
+                </button>
+              </div>
+              <div class="locationCoords">
+                <label class="wizardField">
+                  <span>קו רוחב</span>
+                  <input id="formLat" type="number" step="any" placeholder="31.500000" />
+                </label>
+                <label class="wizardField">
+                  <span>קו אורך</span>
+                  <input id="formLng" type="number" step="any" placeholder="35.000000" />
+                </label>
+              </div>
+            </div>
+            <p id="locationStatus" class="locationStatus">טרם נבחר מיקום</p>
+          </section>
+
+          <section class="wizardPanel" data-panel="3">
+            <p class="wizardPanelLead">בחרו תמונות להצגה בכרטיס המתקן</p>
+            <div id="formImgPicker" class="imagePicker" role="group" aria-label="בחירת תמונות"></div>
+            <p class="wizardHint">ניתן לבחור כמה תמונות. לחיצה נוספת מבטלת בחירה.</p>
+          </section>
+        </div>
+
+        <footer class="wizardFooter">
+          <button type="button" id="wizardBack" class="wizardBtn wizardBtnGhost" hidden>
+            הקודם
+          </button>
+          <div class="wizardFooterSpacer"></div>
+          <button type="button" id="wizardNext" class="wizardBtn wizardBtnPrimary">
+            המשך
+          </button>
+          <button type="button" id="wizardSaveCustoms" class="wizardBtn wizardBtnSaveCustoms" hidden>
+            <span class="wizardSaveCustomsLabel">שמור ערכים חדשים</span>
+            <span class="wizardSaveCustomsDone" aria-hidden="true">
+              <svg class="wizardSaveCheck" viewBox="0 0 24 24" fill="none">
+                <circle class="wizardSaveCheckCircle" cx="12" cy="12" r="10" />
+                <path class="wizardSaveCheckMark" d="M7.5 12.5l3 3 6-6.5" />
+              </svg>
+              נשמר
+            </span>
+          </button>
+          <button type="submit" id="wizardSave" class="wizardBtn wizardBtnPrimary" hidden>
+            צור מתקן
+          </button>
+        </footer>
+      </form>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>

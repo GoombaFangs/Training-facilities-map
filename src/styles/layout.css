@@ -1,0 +1,100 @@
+#map,
+.map {
+  height: 100vh;
+  width: 100vw;
+  z-index: 0;
+}
+
+.leaflet-control-zoom {
+  border-style: none !important;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  border-radius: 50px !important;
+  margin: 20%;
+}
+
+.container {
+  direction: rtl;
+  height: 100vh;
+  width: var(--sidebar-width);
+  background-color: var(--color-bg);
+  box-shadow: 0 -5px 10px #333333;
+  font-size: 1.5vh;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.searchBlock {
+  background-color: var(--color-bg);
+  width: 32vh;
+  z-index: 2;
+  position: fixed;
+  box-shadow: 0 -5px 10px #333333;
+  padding: 3vh 4vh 4vh;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  transition: 0.5s ease;
+}
+
+.hebetLogo {
+  height: 4vh;
+}
+
+.logos img {
+  height: 4vh;
+}
+
+.appTitle {
+  width: 100%;
+  margin: 1vh 0;
+  font-size: 1.8vh;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.search {
+  height: auto;
+  width: 32vh;
+  border-radius: 1vh;
+  border: solid var(--color-border) 0.19vh;
+  margin: 0 0 1vh;
+  padding: 1.5vh;
+  font-family: inherit;
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 100vw;
+    height: 45vh;
+    top: auto;
+    bottom: 0;
+    right: 0;
+  }
+
+  .searchBlock {
+    width: calc(100% - 4vh);
+    position: relative;
+    box-shadow: none;
+    padding: 2vh;
+  }
+
+  .search {
+    width: 100%;
+  }
+
+  #map,
+  .map {
+    height: 55vh;
+  }
+}

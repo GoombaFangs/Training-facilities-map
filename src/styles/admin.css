@@ -1,0 +1,719 @@
+.sidebarTop {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1vh;
+  flex-wrap: wrap;
+}
+
+.roleBadge {
+  margin-inline-start: auto;
+  padding: 0.7vh 1.6vh;
+  border-radius: 20vh;
+  font-size: 1.55vh;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: #d9e8f5;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  box-shadow: 0 1px 4px rgba(1, 84, 151, 0.18);
+}
+
+.roleBadge[data-role='admin'] {
+  background: #d4f0f2;
+  color: #046a70;
+  border-color: var(--color-primary-open);
+  box-shadow: 0 1px 4px rgba(6, 131, 139, 0.2);
+}
+
+.adminToolbar {
+  width: 100%;
+  display: flex;
+  gap: 1vh;
+  margin-bottom: 1.5vh;
+}
+
+.adminToolbar[hidden] {
+  display: none !important;
+}
+
+.adminBtn {
+  flex: 1;
+  padding: 1vh 1.2vh;
+  border-radius: 1vh;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1.35vh;
+  font-weight: 500;
+}
+
+.adminBtnPrimary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.adminBtnGhost {
+  background: #fff;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+}
+
+.cardTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1vh;
+  padding-inline-end: 1vh;
+}
+
+.cardTitleRow .cardTitle {
+  margin-inline-end: 0;
+}
+
+.cardActions {
+  display: flex;
+  gap: 0.4vh;
+  padding-top: 1.2vh;
+  flex-shrink: 0;
+}
+
+.cardActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35vh;
+  padding: 0.45vh 0.9vh;
+  border-radius: 0.6vh;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1.1vh;
+}
+
+.cardActionIcon {
+  width: 1.35vh;
+  height: 1.35vh;
+  flex-shrink: 0;
+}
+
+.cardActionEdit {
+  color: var(--color-primary);
+}
+
+.cardActionDelete {
+  color: #b42318;
+  border-color: #f0c0bc;
+}
+
+.mapPickHint {
+  position: fixed;
+  top: 2vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  background: rgba(1, 84, 151, 0.95);
+  color: #fff;
+  padding: 1vh 2vh;
+  border-radius: 1vh;
+  font-size: 1.6vh;
+  pointer-events: none;
+}
+
+.mapPickHint.is-idle {
+  background: rgba(1, 84, 151, 0.82);
+  top: 2.5vh;
+  left: auto;
+  right: calc(var(--sidebar-width) + 2vh);
+  transform: none;
+  font-size: 1.4vh;
+  max-width: 36vh;
+}
+
+.mapPickHint[hidden] {
+  display: none !important;
+}
+
+.facilityFormBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(15, 28, 40, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  direction: rtl;
+  padding: 2vh;
+  backdrop-filter: blur(2px);
+}
+
+.facilityFormBackdrop[hidden] {
+  display: none !important;
+}
+
+.facilityForm {
+  width: min(760px, 96vw);
+  max-height: 92vh;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.wizardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 1.75rem 1rem;
+  border-bottom: 1px solid #eceff2;
+}
+
+.wizardEyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--color-primary-open);
+  font-weight: 500;
+}
+
+.wizardHeader h2 {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.wizardClose {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  border: none;
+  background: #f1f3f5;
+  color: #667;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.wizardClose:hover {
+  background: #e6eaee;
+  color: var(--color-text);
+}
+
+.wizardSteps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.75rem;
+  background: linear-gradient(180deg, #f7f9fb 0%, #fff 100%);
+}
+
+.wizardStep {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--color-muted-strong);
+  padding: 0.25rem;
+}
+
+.wizardStepNum {
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #e8eef3;
+  color: #7a8694;
+}
+
+.wizardStepLabel {
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.wizardStep.is-active .wizardStepNum {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.wizardStep.is-active .wizardStepLabel {
+  color: var(--color-primary);
+}
+
+.wizardStep.is-done .wizardStepNum {
+  background: var(--color-primary-open);
+  color: #fff;
+}
+
+.wizardStep.is-done .wizardStepLabel {
+  color: var(--color-primary-open);
+}
+
+.wizardStepLine {
+  width: 2.5rem;
+  height: 2px;
+  background: #d9e1e8;
+  border-radius: 2px;
+}
+
+.wizardError {
+  margin: 0 1.75rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: #fff1f0;
+  color: #b42318;
+  border: 1px solid #f0c0bc;
+  font-size: 0.9rem;
+}
+
+.wizardError[hidden] {
+  display: none !important;
+}
+
+.wizardBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.5rem 1.75rem 1.25rem;
+}
+
+.wizardPanel {
+  display: none;
+  animation: wizardFade 0.25s ease;
+}
+
+.wizardPanel.is-active {
+  display: block;
+}
+
+@keyframes wizardFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wizardPanelLead {
+  margin: 0 0 1.1rem;
+  color: var(--color-muted-strong);
+  font-size: 0.95rem;
+}
+
+.wizardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.95rem 1rem;
+}
+
+.wizardField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  color: var(--color-muted-strong);
+}
+
+.wizardFieldFull {
+  grid-column: 1 / -1;
+}
+
+.wizardField input,
+.wizardField select,
+.wizardField textarea {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #d5dde5;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wizardField input:focus,
+.wizardField select:focus,
+.wizardField textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0.12);
+}
+
+.otherInput {
+  margin-top: 0.45rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #d5dde5;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: #fffaf3;
+}
+
+.otherInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0.12);
+}
+
+.otherInput[hidden] {
+  display: none !important;
+}
+
+.wizardHint {
+  font-size: 0.8rem;
+  color: #9aa5b1;
+  margin: 0.75rem 0 0;
+}
+
+.choiceChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.choiceChip {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.choiceChip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.choiceChip span {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid #d5dde5;
+  background: #fff;
+  color: var(--color-text);
+  font-size: 0.88rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.choiceChip input:checked + span {
+  background: #e7f2f8;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.choiceChip:hover span {
+  border-color: #b7c6d3;
+}
+
+.imagePicker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.imagePickItem {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  background: #edf1f4;
+}
+
+.imagePickItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.imagePickCheck {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.imagePickItem.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0.15);
+}
+
+.imagePickItem.is-selected .imagePickCheck {
+  display: inline-flex;
+}
+
+
+.locationCard {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f3f7fa 0%, #eef5f6 100%);
+  border: 1px solid #dde7ee;
+}
+
+.locationCardText h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+  color: var(--color-text);
+}
+
+.locationCardText p {
+  margin: 0 0 1rem;
+  color: var(--color-muted-strong);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.wizardMapBtn {
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.1rem;
+  background: var(--color-primary);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.wizardMapBtn:hover {
+  background: #014679;
+}
+
+.locationCoords {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  justify-content: center;
+}
+
+.locationStatus {
+  margin: 1rem 0 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: #f5f7f9;
+  color: var(--color-muted-strong);
+  font-size: 0.9rem;
+}
+
+.locationStatus.is-ready {
+  background: #e8f6f2;
+  color: #1f6f5a;
+}
+
+.wizardFooter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.75rem 1.35rem;
+  border-top: 1px solid #eceff2;
+  background: #fafbfc;
+}
+
+.wizardFooterSpacer {
+  flex: 1;
+}
+
+.wizardBtn {
+  min-width: 7.5rem;
+  padding: 0.75rem 1.2rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.wizardBtn[hidden] {
+  display: none !important;
+}
+
+.wizardBtnPrimary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.wizardBtnPrimary:hover {
+  background: #014679;
+}
+
+.wizardBtnGhost {
+  background: #fff;
+  color: var(--color-primary);
+  border: 1px solid #d5dde5;
+}
+
+.wizardBtnGhost:hover {
+  background: #f5f8fa;
+}
+
+.wizardBtnSaveCustoms {
+  position: relative;
+  min-width: 10.5rem;
+  background: #fff;
+  color: var(--color-primary-open);
+  border: 1.5px solid var(--color-primary-open);
+  overflow: hidden;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.2s ease;
+}
+
+.wizardBtnSaveCustoms:hover {
+  background: #e8f6f7;
+}
+
+.wizardSaveCustomsLabel,
+.wizardSaveCustomsDone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.wizardSaveCustomsDone {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(0.85);
+  color: #fff;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.wizardSaveCheck {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.wizardSaveCheckCircle {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-dasharray: 64;
+  stroke-dashoffset: 64;
+}
+
+.wizardSaveCheckMark {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+}
+
+.wizardBtnSaveCustoms.is-success {
+  background: #1f6f5a;
+  border-color: #1f6f5a;
+  color: #fff;
+  pointer-events: none;
+}
+
+.wizardBtnSaveCustoms.is-success .wizardSaveCustomsLabel {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.wizardBtnSaveCustoms.is-success .wizardSaveCustomsDone {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.wizardBtnSaveCustoms.is-success .wizardSaveCheckCircle {
+  animation: saveCheckCircle 0.45s ease forwards;
+}
+
+.wizardBtnSaveCustoms.is-success .wizardSaveCheckMark {
+  animation: saveCheckMark 0.35s 0.28s ease forwards;
+}
+
+@keyframes saveCheckCircle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes saveCheckMark {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .adminToolbar {
+    flex-direction: column;
+  }
+
+  .wizardGrid,
+  .locationCard {
+    grid-template-columns: 1fr;
+  }
+
+  .wizardSteps {
+    gap: 0.25rem;
+  }
+
+  .wizardStepLabel {
+    display: none;
+  }
+
+  .wizardStepLine {
+    width: 1.25rem;
+  }
+
+  .imagePicker {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wizardFooter {
+    flex-wrap: wrap;
+  }
+
+  .wizardFooterSpacer {
+    display: none;
+  }
+
+  .wizardBtnSaveCustoms,
+  #wizardSave {
+    flex: 1;
+    min-width: 0;
+  }
+}

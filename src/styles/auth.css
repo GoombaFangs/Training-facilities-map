@@ -1,0 +1,139 @@
+.roleGate {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(160deg, rgba(1, 84, 151, 0.88), rgba(6, 131, 139, 0.9)),
+    url('/assets/img/img2.jpg') center / cover;
+  direction: rtl;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.roleGate.is-leaving {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.roleGate.is-leaving .roleGateCard {
+  transform: scale(0.94) translateY(10px);
+  opacity: 0;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.roleGate[hidden] {
+  display: none !important;
+}
+
+.roleGateCard {
+  width: min(420px, 92vw);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 16px;
+  padding: 2rem 1.75rem;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+
+.roleGateLogo {
+  height: 48px;
+  margin-bottom: 0.75rem;
+}
+
+.roleGateCard h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.roleGateSubtitle {
+  margin: 0.5rem 0 1.5rem;
+  color: var(--color-muted-strong);
+}
+
+.roleGateActions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.roleBtn {
+  min-width: 120px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.roleBtn:hover {
+  transform: translateY(-1px);
+}
+
+.roleBtnGuest {
+  background: #e8eef5;
+  color: var(--color-primary);
+}
+
+.roleBtnAdmin {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.roleBtnGhost {
+  background: transparent;
+  color: var(--color-muted-strong);
+  border: 1px solid var(--color-border);
+}
+
+.adminPasswordPanel {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  text-align: right;
+}
+
+.adminPasswordTitle {
+  margin: 0 0 1.25rem;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.roleGateIntro[hidden] {
+  display: none !important;
+}
+
+.adminPasswordPanel label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--color-muted-strong);
+  font-size: 0.9rem;
+}
+
+.adminPasswordPanel input {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-family: inherit;
+  margin-bottom: 0.75rem;
+}
+
+.adminPasswordError {
+  color: #b42318;
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.adminPasswordActions {
+  display: flex;
+  gap: 0.5rem;
+}

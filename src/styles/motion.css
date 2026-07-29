@@ -1,0 +1,652 @@
+/* Global motion language — keeps the UI feeling alive */
+
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Role gate ---- */
+.roleGateCard {
+  animation: gateCardIn 0.55s var(--ease-out) both;
+}
+
+.roleGateLogo {
+  animation: softSoft 3.5s ease-in-out infinite;
+}
+
+.roleGateActions .roleBtn {
+  transition:
+    transform 0.2s var(--ease-spring),
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.roleGateActions .roleBtn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 8px 20px rgba(1, 84, 151, 0.2);
+}
+
+.roleGateActions .roleBtn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.adminPasswordPanel:not([hidden]) {
+  animation: panelSlideIn 0.35s var(--ease-out) both;
+}
+
+.adminPasswordTitle {
+  animation: fadeUp 0.4s var(--ease-out) both;
+}
+
+/* ---- Sidebar living details ---- */
+.appShell.is-ready .hebetLogo,
+.appShell.is-ready .logos img {
+  animation: floatSoft 4s ease-in-out infinite;
+}
+
+.appShell.is-ready .logos img {
+  animation-delay: 0.6s;
+}
+
+.roleBadge {
+  transition:
+    transform 0.25s var(--ease-spring),
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+  animation: badgePop 0.55s var(--ease-spring) 0.7s both;
+}
+
+.roleBadge:hover {
+  transform: scale(1.06);
+}
+
+.search {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0.15);
+  transform: translateY(-1px);
+}
+
+.adminBtn {
+  transition:
+    transform 0.2s var(--ease-spring),
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.adminBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(1, 84, 151, 0.18);
+}
+
+.adminBtn:active {
+  transform: scale(0.97);
+}
+
+/* ---- Filters ---- */
+.filtering {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+
+.filtering:hover {
+  border-color: #9db4c7;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.filtering.is-open {
+  border-color: var(--color-primary-open);
+  box-shadow: 0 6px 16px rgba(6, 131, 139, 0.12);
+}
+
+.filteringIcon {
+  transition: transform 0.3s var(--ease-out), background-color 0.2s ease;
+}
+
+.filtering.is-open .filteringIcon {
+  transform: rotate(180deg);
+}
+
+.filterOptions span {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.3s var(--ease-out),
+    background-color 0.15s ease;
+}
+
+.filtering.is-open .filterOptions span {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.filtering.is-open .filterOptions span:nth-child(1) { transition-delay: 0.04s; }
+.filtering.is-open .filterOptions span:nth-child(2) { transition-delay: 0.08s; }
+.filtering.is-open .filterOptions span:nth-child(3) { transition-delay: 0.12s; }
+.filtering.is-open .filterOptions span:nth-child(4) { transition-delay: 0.16s; }
+
+.filterOptions span:hover {
+  background: #f3f7fa;
+  border-radius: 0.6vh;
+}
+
+.filterTag {
+  animation: chipIn 0.3s var(--ease-spring) both;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.filterTag:hover {
+  transform: scale(1.05);
+}
+
+.tagClose {
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.tagClose:hover {
+  transform: scale(1.2);
+}
+
+/* ---- Cards ---- */
+.card {
+  transition:
+    transform 0.25s var(--ease-spring),
+    box-shadow 0.25s ease,
+    border-color 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  border-color: #9db4c7;
+}
+
+.card:active {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.cardTag {
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.card:hover .cardTag {
+  animation: tagWiggle 0.45s var(--ease-spring) both;
+}
+
+.card:hover .cardTag:nth-child(2) { animation-delay: 0.05s; }
+.card:hover .cardTag:nth-child(3) { animation-delay: 0.1s; }
+.card:hover .cardTag:nth-child(4) { animation-delay: 0.15s; }
+
+.cardActionBtn {
+  transition:
+    transform 0.2s var(--ease-spring),
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cardActionBtn:hover {
+  transform: translateY(-1px) scale(1.04);
+}
+
+.cardActionBtn:active {
+  transform: scale(0.95);
+}
+
+.statusBadge {
+  animation: chipIn 0.35s var(--ease-spring) both;
+  transition: transform 0.2s ease;
+}
+
+.statusBadge:hover {
+  transform: scale(1.05);
+}
+
+.statusActive {
+  animation: softPulse 2.8s ease-in-out infinite;
+}
+
+/* ---- Map ---- */
+.appShell.is-ready .leaflet-marker-icon {
+  animation: none;
+}
+
+.appShell.is-ready .facility-marker-pin {
+  animation: markerPinIn 0.45s var(--ease-spring) both;
+}
+
+.leaflet-marker-icon {
+  /* Don't transform Leaflet marker wrappers — it breaks positioning */
+  background: none !important;
+  border: none !important;
+}
+
+.facility-marker {
+  background: transparent;
+  border: none;
+}
+
+.facility-marker-pin {
+  width: 40px;
+  height: 56px;
+  position: relative;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.28));
+  transition: filter 0.2s ease;
+}
+
+.facility-marker-pin::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: linear-gradient(165deg, #f25b5b 0%, #d04646 52%, #b83a3a 100%);
+  border: 3px solid #fff;
+  box-sizing: border-box;
+}
+
+.facility-marker-pin::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 24px;
+  width: 18px;
+  height: 26px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #d04646 0%, #b83a3a 100%);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.facility-marker-dot {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  width: 11px;
+  height: 11px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #fff;
+  z-index: 1;
+  box-shadow: 0 0 0 1.5px rgba(184, 58, 58, 0.2);
+}
+
+.facility-marker:hover .facility-marker-pin {
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+}
+
+.facility-marker:hover .facility-marker-pin::before {
+  background: linear-gradient(165deg, #ff7070 0%, #e05050 52%, #c44343 100%);
+}
+
+@keyframes markerPinIn {
+  from {
+    opacity: 0;
+    margin-top: -10px;
+  }
+  to {
+    opacity: 1;
+    margin-top: 0;
+  }
+}
+
+.leaflet-control-zoom a {
+  transition: transform 0.2s ease, background-color 0.2s ease !important;
+}
+
+.leaflet-control-zoom a:hover {
+  transform: scale(1.08);
+}
+
+.mapPickHint:not(.is-idle) {
+  animation: hintFloatCenter 2.4s ease-in-out infinite;
+}
+
+.mapPickHint.is-idle {
+  animation: hintFloat 3s ease-in-out infinite, hintIn 0.4s var(--ease-out) both;
+}
+
+@keyframes hintFloatCenter {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-3px);
+  }
+}
+
+/* ---- Popup ---- */
+.popUpMetaItem,
+.facilitySection {
+  animation: fadeUp 0.4s var(--ease-out) both;
+}
+
+.popUpMetaItem:nth-child(1) { animation-delay: 0.04s; }
+.popUpMetaItem:nth-child(2) { animation-delay: 0.08s; }
+.popUpMetaItem:nth-child(3) { animation-delay: 0.12s; }
+
+.facilitySection:nth-child(1) { animation-delay: 0.1s; }
+.facilitySection:nth-child(2) { animation-delay: 0.16s; }
+.facilitySection:nth-child(3) { animation-delay: 0.22s; }
+.facilitySection:nth-child(4) { animation-delay: 0.28s; }
+
+.facilitySectionTitle {
+  transition: transform 0.2s ease;
+}
+
+.facilitySection:hover .facilitySectionTitle {
+  transform: scale(1.02);
+}
+
+.contactPhoneLink {
+  transition: color 0.2s ease;
+  display: inline-block;
+}
+
+.optionsContainer span {
+  transition: transform 0.2s var(--ease-spring), background-color 0.2s ease;
+}
+
+.optionsContainer span:hover {
+  transform: scale(1.05);
+}
+
+.closePopUp,
+.bigImgBtn,
+.imgArrow {
+  transition: transform 0.2s var(--ease-spring), background-color 0.2s ease, color 0.2s ease;
+}
+
+.closePopUp:hover,
+.bigImgBtn:hover,
+.imgArrow:hover {
+  transform: scale(1.1);
+}
+
+/* ---- Wizard / admin form ---- */
+.wizardStep {
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.wizardStep:hover {
+  transform: translateY(-1px);
+}
+
+.wizardStepNum {
+  transition: transform 0.25s var(--ease-spring), background-color 0.2s ease;
+}
+
+.wizardStep.is-active .wizardStepNum {
+  animation: badgePop 0.4s var(--ease-spring) both;
+}
+
+.wizardPanel.is-active {
+  animation: wizardFade 0.35s var(--ease-out);
+}
+
+.choiceChip span {
+  transition:
+    transform 0.2s var(--ease-spring),
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.choiceChip:hover span {
+  transform: translateY(-1px);
+}
+
+.choiceChip input:checked + span {
+  animation: chipIn 0.25s var(--ease-spring) both;
+}
+
+.imagePickItem {
+  transition: transform 0.25s var(--ease-spring), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.imagePickItem:hover {
+  transform: scale(1.04);
+}
+
+.imagePickItem.is-selected {
+  animation: badgePop 0.35s var(--ease-spring) both;
+}
+
+.imagePickCheck {
+  transition: transform 0.25s var(--ease-spring);
+}
+
+.imagePickItem.is-selected .imagePickCheck {
+  animation: checkPop 0.35s var(--ease-spring) both;
+}
+
+.wizardBtn,
+.wizardMapBtn,
+.wizardClose {
+  transition:
+    transform 0.2s var(--ease-spring),
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.wizardBtn:hover,
+.wizardMapBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(1, 84, 151, 0.18);
+}
+
+.wizardBtn:active,
+.wizardMapBtn:active,
+.wizardClose:active {
+  transform: scale(0.96);
+}
+
+.wizardClose:hover {
+  transform: rotate(90deg);
+}
+
+.facilityFormBackdrop:not([hidden]) .facilityForm {
+  animation: formIn 0.4s var(--ease-out) both;
+}
+
+.locationCard {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.locationCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(1, 84, 151, 0.1);
+}
+
+.locationStatus.is-ready {
+  animation: chipIn 0.35s var(--ease-spring) both;
+}
+
+.markerActionBtn:nth-child(1) {
+  transition-delay: 0.02s;
+}
+
+.markerActionBtn:nth-child(2) {
+  transition-delay: 0.06s;
+}
+
+.markerActionMenu.is-open .markerActionBtn {
+  animation: markerBtnIn 0.35s var(--ease-spring) both;
+}
+
+.markerActionMenu.is-open .markerActionBtn:nth-child(2) {
+  animation-delay: 0.07s;
+}
+
+/* ---- Keyframes ---- */
+@keyframes gateCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatSoft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes badgePop {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes chipIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tagWiggle {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-2px) scale(1.04);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes softPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(31, 111, 90, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(31, 111, 90, 0.12);
+  }
+}
+
+@keyframes markerPinIn {
+  from {
+    opacity: 0;
+    margin-top: -10px;
+  }
+  to {
+    opacity: 1;
+    margin-top: 0;
+  }
+}
+
+@keyframes hintFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes hintIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes formIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes checkPop {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes markerBtnIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

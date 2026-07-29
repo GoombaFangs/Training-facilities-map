@@ -1,0 +1,117 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "nameOfFacility": "מתקן אימון צפון",
+        "unitOwningTheFacility": "יחידה 1",
+        "statusOfFacility": "פעיל",
+        "phoneOfFacility": "04-1234567",
+        "locationOfFacility": "בסיס צפון",
+        "areaInTheCountry": "צפון",
+        "TypesOfFacilities": [
+          {
+            "typeOfFacility": "מטווחים",
+            "specificTypeOfFacility": "מטווחי חוץ",
+            "trainingOptions": ["ירי בסיסי", "ירי מתקדם"],
+            "trainingFrame": "מחלקה",
+            "imgArr": ["/assets/img/img1.avif", "/assets/img/img2.jpg"],
+            "comments": "מתקן לדוגמה באזור הצפון."
+          },
+          {
+            "typeOfFacility": "חדר ירי",
+            "specificTypeOfFacility": "חדר ירי מבטון",
+            "trainingOptions": ["אימון מקורה", "תרגול בטיחות"],
+            "trainingFrame": "חוליה",
+            "imgArr": ["/assets/img/img3.jpg"],
+            "comments": "חדר ירי מקורה."
+          }
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [35.17449481949572, 32.84208208398009]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nameOfFacility": "מתקן אימון מרכז",
+        "unitOwningTheFacility": "יחידה 2",
+        "statusOfFacility": "בבניה",
+        "phoneOfFacility": "03-7654321",
+        "locationOfFacility": "בסיס מרכז",
+        "areaInTheCountry": "מרכז",
+        "TypesOfFacilities": [
+          {
+            "typeOfFacility": "מטווחים",
+            "specificTypeOfFacility": "מטווחי חוץ",
+            "trainingOptions": ["ירי בסיסי", "ירי לילה"],
+            "trainingFrame": "פלוגה",
+            "imgArr": [
+              "/assets/img/img1.avif",
+              "/assets/img/img2.jpg",
+              "/assets/img/img3.jpg",
+              "/assets/img/img4.jpg"
+            ],
+            "comments": "מתקן לדוגמה באזור המרכז."
+          },
+          {
+            "typeOfFacility": "חדר ירי",
+            "specificTypeOfFacility": "חדר ירי מבטון",
+            "trainingOptions": ["אימון מקורה", "סימולציה"],
+            "trainingFrame": "מחלקה",
+            "imgArr": ["/assets/img/img5.webp", "/assets/img/img6.jpg"],
+            "comments": ""
+          },
+          {
+            "typeOfFacility": "לש\"בית מכולות",
+            "specificTypeOfFacility": "לש\"בית מכולות",
+            "trainingOptions": ["תרגול כניסה", "ניווט מבנים"],
+            "trainingFrame": "חוליה",
+            "imgArr": ["/assets/img/img7.JPG"],
+            "comments": "מתחם מכולות לתרגול."
+          }
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [34.60450515447002, 31.578730148446937]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nameOfFacility": "מתקן אימון דרום",
+        "unitOwningTheFacility": "יחידה 3",
+        "statusOfFacility": "לא פעיל",
+        "phoneOfFacility": "08-9876543",
+        "locationOfFacility": "בסיס דרום",
+        "areaInTheCountry": "דרום",
+        "TypesOfFacilities": [
+          {
+            "typeOfFacility": "מטווחים",
+            "specificTypeOfFacility": "מטווחי חוץ",
+            "trainingOptions": ["ירי בסיסי"],
+            "trainingFrame": "מחלקה",
+            "imgArr": ["/assets/img/img4.jpg"],
+            "comments": "מתקן לדוגמה באזור הדרום."
+          },
+          {
+            "typeOfFacility": "לש\"בית עץ",
+            "specificTypeOfFacility": "לש\"בית עץ",
+            "trainingOptions": ["תרגול מבנים", "ניווט"],
+            "trainingFrame": "חוליה",
+            "imgArr": ["/assets/img/img6.jpg", "/assets/img/img7.JPG"],
+            "comments": ""
+          }
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [34.89360150384468, 30.521936582057236]
+      }
+    }
+  ]
+}

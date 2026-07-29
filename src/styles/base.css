@@ -1,0 +1,68 @@
+:root {
+  --color-bg: #f1f2f2;
+  --color-surface: #ffffff;
+  --color-text: #333333;
+  --color-muted: #b2b2b2;
+  --color-muted-strong: #7f7f7f;
+  --color-border: #b3b5b1;
+  --color-primary: #015497;
+  --color-primary-open: #06838b;
+  --color-accent: #00aeef;
+  --color-chip: #e9e9e9;
+  --color-chip-text: #9f9f9f;
+  --color-overlay: rgba(0, 0, 0, 0.473);
+
+  --tag-meholot-bg: #f4efff;
+  --tag-meholot-fg: #5a3d8e;
+  --tag-mitvahim-bg: #ebf0e6;
+  --tag-mitvahim-fg: #396d06;
+  --tag-heder-bg: #ecf4ff;
+  --tag-heder-fg: #4a77bf;
+  --tag-ez-bg: #fff9ec;
+  --tag-ez-fg: #68611a;
+
+  --sidebar-width: 40vh;
+  --font-family: 'Rubik', 'Segoe UI', Tahoma, sans-serif;
+}
+
+@font-face {
+  font-family: 'Rubik';
+  src: url('/assets/fonts/Rubik-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+button {
+  font: inherit;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 0.5vw;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-muted);
+  border-radius: 0.7vw;
+}

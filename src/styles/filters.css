@@ -1,0 +1,95 @@
+.filtering {
+  width: 15vh;
+  background-color: var(--color-surface);
+  color: var(--color-muted);
+  border-radius: 1vh;
+  border: solid var(--color-border) 0.19vh;
+  margin: 1vh 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transition: 0.5s ease;
+}
+
+.filteringHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.filteringIcon {
+  background-color: var(--color-primary);
+  width: 1.5vh;
+  height: 1.5vh;
+  margin: 1vh 0 1vh 2vh;
+}
+
+.filteringText {
+  margin: 1vh 2vh;
+}
+
+.filterOptions {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.filterOptions span {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.filterOptions input {
+  margin: 1vh;
+  cursor: pointer;
+}
+
+.filterOptions span p {
+  margin: 0.5vh;
+}
+
+.filterTags {
+  width: 32vh;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.filterTag {
+  height: 3vh;
+  margin: 0.5vh;
+  border-radius: 20vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  background-color: var(--color-chip);
+  color: var(--color-chip-text);
+}
+
+.tagClose {
+  margin: 0.5vh 1vh 0.5vh 0;
+}
+
+.tagClose:hover {
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.tagText {
+  margin: 0 1vh;
+}
+
+@media (max-width: 768px) {
+  .filtering {
+    width: calc(50% - 0.5vh);
+  }
+
+  .filterTags {
+    width: 100%;
+  }
+}

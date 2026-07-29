@@ -1,0 +1,86 @@
+/* Entrance animation after role selection */
+
+.appShell:not(.is-ready) .container {
+  transform: translateX(110%);
+}
+
+.appShell .container {
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.appShell:not(.is-ready) .searchBlock > *,
+.appShell:not(.is-ready) .adminToolbar,
+.appShell:not(.is-ready) .cards .card,
+.appShell:not(.is-ready) .leaflet-control-zoom {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.appShell.is-ready .searchBlock > *,
+.appShell.is-ready .adminToolbar {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.45s ease,
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.appShell.is-ready .searchBlock > *:nth-child(1) { transition-delay: 0.28s; }
+.appShell.is-ready .searchBlock > *:nth-child(2) { transition-delay: 0.34s; }
+.appShell.is-ready .searchBlock > *:nth-child(3) { transition-delay: 0.4s; }
+.appShell.is-ready .searchBlock > *:nth-child(4) { transition-delay: 0.46s; }
+.appShell.is-ready .searchBlock > *:nth-child(5) { transition-delay: 0.52s; }
+.appShell.is-ready .searchBlock > *:nth-child(6) { transition-delay: 0.58s; }
+.appShell.is-ready .searchBlock > *:nth-child(7) { transition-delay: 0.64s; }
+.appShell.is-ready .searchBlock > *:nth-child(8) { transition-delay: 0.7s; }
+.appShell.is-ready .searchBlock > *:nth-child(n + 9) { transition-delay: 0.76s; }
+
+.appShell.is-ready .adminToolbar {
+  transition-delay: 0.42s;
+}
+
+.appShell.is-ready .cards .card {
+  animation: sidebarCardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.appShell.is-ready .cards .card:nth-child(1) { animation-delay: 0.55s; }
+.appShell.is-ready .cards .card:nth-child(2) { animation-delay: 0.63s; }
+.appShell.is-ready .cards .card:nth-child(3) { animation-delay: 0.71s; }
+.appShell.is-ready .cards .card:nth-child(4) { animation-delay: 0.79s; }
+.appShell.is-ready .cards .card:nth-child(5) { animation-delay: 0.87s; }
+.appShell.is-ready .cards .card:nth-child(n + 6) { animation-delay: 0.95s; }
+
+.appShell.is-ready .leaflet-control-zoom {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.45s ease 0.35s, transform 0.55s ease 0.35s;
+}
+
+@keyframes sidebarCardIn {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .appShell:not(.is-ready) .container {
+    transform: translateY(110%);
+  }
+
+  @keyframes sidebarCardIn {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

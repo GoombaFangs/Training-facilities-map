@@ -1,0 +1,145 @@
+.cards {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  top: 27vh;
+  height: 67vh;
+  overflow-y: auto;
+  padding: 4vh;
+  direction: ltr;
+}
+
+.card {
+  background-color: var(--color-surface);
+  width: 30vh;
+  border-radius: 1vh;
+  border: solid var(--color-border) 0.19vh;
+  margin-bottom: 2vh;
+  direction: rtl;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px) scale(1.02);
+}
+
+.appShell.is-admin .cards {
+  top: 34vh;
+  height: 60vh;
+}
+
+.cardTitle {
+  margin: 1.5vh 2vh 0.5vh;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.cardAddress {
+  margin: 1vh 2vh;
+  padding-bottom: 1vh;
+  color: var(--color-muted);
+  border-bottom: solid 0.19vh var(--color-border);
+  display: flex;
+  align-items: center;
+}
+
+.cardAddressIcon {
+  background-color: var(--color-primary);
+  width: 1.5vh;
+  height: 1.5vh;
+  margin-left: 1vh;
+  flex-shrink: 0;
+}
+
+.cardAddressText {
+  margin: 0;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 2vh 0.5vh;
+  padding: 0.35vh 1.1vh;
+  border-radius: 20vh;
+  font-size: 1.2vh;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.statusActive {
+  background: #e8f6ef;
+  color: #1f6f5a;
+}
+
+.statusInactive {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.statusBuilding {
+  background: #fff6e5;
+  color: #9a6700;
+}
+
+.cardTags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 1vh 1.5vh;
+}
+
+.cardTag {
+  height: 3vh;
+  margin: 0.5vh;
+  border-radius: 20vh;
+  display: flex;
+  align-items: center;
+}
+
+.tagIcon {
+  background-color: var(--color-primary);
+  width: 1.5vh;
+  height: 1.5vh;
+  margin: 1vh 1vh 1vh 0;
+  flex-shrink: 0;
+}
+
+.tagType {
+  margin: 1vh;
+}
+
+.lashbitMeholot {
+  background-color: var(--tag-meholot-bg);
+  color: var(--tag-meholot-fg);
+}
+
+.mitvahim {
+  background-color: var(--tag-mitvahim-bg);
+  color: var(--tag-mitvahim-fg);
+}
+
+.hederYery {
+  background-color: var(--tag-heder-bg);
+  color: var(--tag-heder-fg);
+}
+
+.lashbitEz {
+  background-color: var(--tag-ez-bg);
+  color: var(--tag-ez-fg);
+}
+
+@media (max-width: 768px) {
+  .cards {
+    position: relative;
+    top: 0;
+    height: auto;
+    max-height: 22vh;
+    width: 100%;
+    padding: 1vh 2vh 2vh;
+  }
+
+  .card {
+    width: 100%;
+  }
+}
