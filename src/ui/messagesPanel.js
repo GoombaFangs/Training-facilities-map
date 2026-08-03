@@ -4,6 +4,7 @@ import {
   createManagerId,
   findFacilityManagerByPassword,
   findFacilityManagerByName,
+  findFacilityManagerByPersonalNumber,
   getManagerInitial,
 } from '../data/facilityManagers.js';
 import {
@@ -15,7 +16,7 @@ import {
   formatReportTime,
   getReportDisplay,
 } from '../data/managerReports.js';
-import { ADMIN_PASSWORD } from '../config/auth.js';
+import { ADMIN_USERNAME, ADMIN_PASSWORD } from '../config/auth.js';
 import { isMainAdmin } from '../auth/roleGate.js';
 
 let isClosing = false;
@@ -263,11 +264,12 @@ function approveManagerRequest(reportId) {
   }
 
   const name = String(report.managerName ?? '').trim();
+  const personalNumber = String(report.personalNumber ?? '').trim();
   const password = String(report.password ?? '');
   const facilityIds = [...(report.facilityIds ?? [])];
 
-  if (!name || !password) {
-    return { ok: false, message: 'לבקשה חסרים שם או סיסמה' };
+  if (!name || !personalNumber || !password) {
+    return { ok: false, message: 'לבקשה חסרים שם, מספר אישי או סיסמה' };
   }
 
   if (password === ADMIN_PASSWORD || findFacilityManagerByPassword(password)) {
@@ -277,10 +279,17 @@ function approveManagerRequest(reportId) {
     };
   }
 
-  if (findFacilityManagerByName(name)) {
+  if (findFacilityManagerByName(name) || name === ADMIN_USERNAME) {
     return {
       ok: false,
       message: 'לא ניתן לאשר — כבר קיים מנהל מתקן עם שם זה.',
+    };
+  }
+
+  if (findFacilityManagerByPersonalNumber(personalNumber)) {
+    return {
+      ok: false,
+      message: 'לא ניתן לאשר — המספר האישי כבר בשימוש.',
     };
   }
 
@@ -292,6 +301,7 @@ function approveManagerRequest(reportId) {
   managers.push({
     id: createManagerId(),
     name,
+    personalNumber,
     password,
     facilityIds,
   });

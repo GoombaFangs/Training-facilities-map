@@ -8,6 +8,7 @@ const STORAGE_KEY = 'training-facilities-manager-reports';
  *   type: ManagerReportType,
  *   managerId: string,
  *   managerName: string,
+ *   personalNumber: string,
  *   phone: string,
  *   password: string,
  *   facilityId: string,
@@ -67,6 +68,7 @@ function normalizeReport(item) {
     type,
     managerId: String(raw.managerId ?? '').trim(),
     managerName: String(raw.managerName ?? '').trim(),
+    personalNumber: String(raw.personalNumber ?? '').trim(),
     phone: String(raw.phone ?? '').trim(),
     password: String(raw.password ?? ''),
     facilityId: String(raw.facilityId ?? '').trim(),
@@ -112,6 +114,7 @@ export function createReportId() {
  *   type: ManagerReportType,
  *   managerId?: string,
  *   managerName: string,
+ *   personalNumber?: string,
  *   phone?: string,
  *   password?: string,
  *   facilityId?: string,
@@ -129,6 +132,7 @@ export function addManagerReport(payload) {
     type: payload.type,
     managerId: String(payload.managerId ?? '').trim(),
     managerName: String(payload.managerName ?? '').trim(),
+    personalNumber: String(payload.personalNumber ?? '').trim(),
     phone: String(payload.phone ?? '').trim(),
     password: String(payload.password ?? ''),
     facilityId: String(payload.facilityId ?? '').trim(),
@@ -151,7 +155,7 @@ export function addManagerReport(payload) {
 }
 
 /**
- * @param {{ managerId: string, managerName: string, phone: string }} payload
+ * @param {{ managerId: string, managerName: string, personalNumber?: string, phone: string }} payload
  * @returns {ManagerReport}
  */
 export function addForgotPasswordReport(payload) {
@@ -159,6 +163,7 @@ export function addForgotPasswordReport(payload) {
     type: 'forgot_password',
     managerId: payload.managerId,
     managerName: payload.managerName,
+    personalNumber: payload.personalNumber,
     phone: payload.phone,
   });
 }
@@ -166,6 +171,7 @@ export function addForgotPasswordReport(payload) {
 /**
  * @param {{
  *   managerName: string,
+ *   personalNumber: string,
  *   password: string,
  *   facilityIds: string[],
  *   facilityNames: string[],
@@ -175,6 +181,7 @@ export function addManagerAccessRequest(payload) {
   return addManagerReport({
     type: 'manager_request',
     managerName: payload.managerName,
+    personalNumber: payload.personalNumber,
     password: payload.password,
     facilityIds: payload.facilityIds,
     facilityNames: payload.facilityNames,
@@ -286,9 +293,15 @@ export function getReportDisplay(report) {
         report.facilityNames.length > 0
           ? report.facilityNames.join(', ')
           : 'לא נבחרו מתקנים';
+      const personal = report.personalNumber
+        ? `מספר אישי: ${report.personalNumber} · `
+        : '';
       return {
         titleHtml: `<strong>${escapeForTemplate(name)}</strong> מבקש להיות מנהל מתקן`,
-        detail: { label: 'מתקנים', value: facilities },
+        detail: {
+          label: 'פרטים',
+          value: `${personal}מתקנים: ${facilities}`,
+        },
         changes: [],
       };
     }
@@ -311,14 +324,22 @@ export function getReportDisplay(report) {
         changes: [],
       };
     case 'forgot_password':
-    default:
+    default: {
+      const parts = [];
+      if (report.personalNumber) parts.push(`מספר אישי: ${report.personalNumber}`);
+      if (report.phone) parts.push(`טלפון: ${report.phone}`);
       return {
         titleHtml: `<strong>${escapeForTemplate(name)}</strong> שכח את הסיסמה`,
-        detail: report.phone
-          ? { label: 'טלפון', value: report.phone, href: `tel:${report.phone}` }
+        detail: parts.length
+          ? {
+              label: 'פרטים',
+              value: parts.join(' · '),
+              ...(report.phone ? { href: `tel:${report.phone}` } : {}),
+            }
           : null,
         changes: [],
       };
+    }
   }
 }
 

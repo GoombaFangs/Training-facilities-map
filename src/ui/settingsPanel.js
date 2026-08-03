@@ -16,7 +16,7 @@ import {
   resolveAreaFromLat,
   DEFAULT_MAP_REGION_LAYOUT,
 } from '../data/mapRegionLayout.js';
-import { ADMIN_PASSWORD } from '../config/auth.js';
+import { ADMIN_USERNAME, ADMIN_PASSWORD } from '../config/auth.js';
 import { isMainAdmin } from '../auth/roleGate.js';
 import { state } from '../state.js';
 import { saveFacilities } from '../data/storage.js';
@@ -375,6 +375,18 @@ function renderUsersList() {
             />
           </label>
           <label class="settingsUserField">
+            <span>מספר אישי</span>
+            <input
+              type="text"
+              class="settingsItemInput"
+              data-field="personalNumber"
+              value="${escapeAttr(user.personalNumber ?? '')}"
+              placeholder="מספר אישי"
+              inputmode="numeric"
+              autocomplete="off"
+            />
+          </label>
+          <label class="settingsUserField">
             <span>סיסמה</span>
             <input
               type="text"
@@ -440,6 +452,7 @@ function addUserDraftItem() {
   usersDraft.push({
     id: createManagerId(),
     name: '',
+    personalNumber: '',
     password: '',
     facilityIds: [],
   });
@@ -498,13 +511,21 @@ function saveSettings() {
 
   const cleanedUsers = [];
   const usedPasswords = new Set([ADMIN_PASSWORD]);
+  const usedPersonalNumbers = new Set();
 
   for (let i = 0; i < usersDraft.length; i++) {
     const name = String(usersDraft[i].name ?? '').trim();
+    const personalNumber = String(usersDraft[i].personalNumber ?? '').trim();
     const password = String(usersDraft[i].password ?? '');
-    if (!name && !password) continue;
-    if (!name || !password) {
-      showUsersError('לכל מנהל מתקן חובה למלא שם וסיסמה');
+    if (!name && !personalNumber && !password) continue;
+    if (!name || !personalNumber || !password) {
+      showUsersError('לכל מנהל מתקן חובה למלא שם, מספר אישי וסיסמה');
+      setActiveTab('users');
+      renderUsersList();
+      return;
+    }
+    if (usedPersonalNumbers.has(personalNumber)) {
+      showUsersError(`המספר האישי של "${name}" כבר בשימוש — הזינו מספר ייחודי`);
       setActiveTab('users');
       renderUsersList();
       return;
@@ -515,10 +536,18 @@ function saveSettings() {
       renderUsersList();
       return;
     }
+    if (name === ADMIN_USERNAME || name.trim().toLowerCase() === ADMIN_USERNAME.toLowerCase()) {
+      showUsersError(`לא ניתן להשתמש בשם "${ADMIN_USERNAME}" — השם שמור למנהל הראשי`);
+      setActiveTab('users');
+      renderUsersList();
+      return;
+    }
+    usedPersonalNumbers.add(personalNumber);
     usedPasswords.add(password);
     cleanedUsers.push({
       id: usersDraft[i].id || createManagerId(),
       name,
+      personalNumber,
       password,
       facilityIds: [...(usersDraft[i].facilityIds ?? [])],
     });

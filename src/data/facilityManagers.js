@@ -4,6 +4,7 @@ const STORAGE_KEY = 'training-facilities-managers';
  * @typedef {{
  *   id: string,
  *   name: string,
+ *   personalNumber: string,
  *   password: string,
  *   facilityIds: string[],
  * }} FacilityManager
@@ -32,7 +33,7 @@ export function loadFacilityManagers() {
 export function saveFacilityManagers(managers) {
   const cleaned = managers
     .map((item) => normalizeManager(item))
-    .filter((item) => item.name && item.password);
+    .filter((item) => item.name && item.personalNumber && item.password);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
   return cleaned;
 }
@@ -50,6 +51,7 @@ function normalizeManager(item) {
   return {
     id: String(raw.id ?? '').trim() || createManagerId(),
     name: String(raw.name ?? '').trim(),
+    personalNumber: String(raw.personalNumber ?? '').trim(),
     password: String(raw.password ?? ''),
     facilityIds,
   };
@@ -75,6 +77,16 @@ export function findFacilityManagerByName(name) {
   return (
     loadFacilityManagers().find((m) => m.name.trim().toLowerCase() === needle) ?? null
   );
+}
+
+/**
+ * @param {string} personalNumber
+ * @returns {FacilityManager | null}
+ */
+export function findFacilityManagerByPersonalNumber(personalNumber) {
+  const needle = String(personalNumber ?? '').trim();
+  if (!needle) return null;
+  return loadFacilityManagers().find((m) => m.personalNumber === needle) ?? null;
 }
 
 export function createManagerId() {

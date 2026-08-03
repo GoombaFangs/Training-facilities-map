@@ -17,35 +17,72 @@
 
 /* ---- Role gate ---- */
 .roleGateCard {
-  animation: gateCardIn 0.55s var(--ease-out) both;
+  animation: gateCardIn 0.65s var(--ease-out) both;
 }
 
 .roleGateLogo {
-  animation: softSoft 3.5s ease-in-out infinite;
+  animation: floatSoft 4s ease-in-out infinite;
+}
+
+.roleGateTitle,
+.roleGateCard h1 {
+  animation: fadeUp 0.55s var(--ease-out) 0.08s both;
+}
+
+.roleGateSubtitle {
+  animation: fadeUp 0.55s var(--ease-out) 0.16s both;
 }
 
 .roleGateActions .roleBtn {
+  animation: fadeUp 0.55s var(--ease-out) both;
   transition:
-    transform 0.2s var(--ease-spring),
+    transform 0.22s var(--ease-spring),
     background-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color 0.2s ease,
+    box-shadow 0.22s ease;
+}
+
+.roleGateActions .roleBtn:nth-child(1) {
+  animation-delay: 0.24s;
+}
+
+.roleGateActions .roleBtn:nth-child(2) {
+  animation-delay: 0.32s;
 }
 
 .roleGateActions .roleBtn:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 8px 20px rgba(1, 84, 151, 0.2);
+  transform: translateY(-3px);
+}
+
+.roleGateActions .roleBtnGuest:hover {
+  box-shadow: 0 10px 22px rgba(1, 84, 151, 0.12);
+}
+
+.roleGateActions .roleBtnAdmin:hover {
+  box-shadow: 0 12px 26px rgba(1, 84, 151, 0.34);
 }
 
 .roleGateActions .roleBtn:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.98);
 }
 
-.adminPasswordPanel:not([hidden]) {
-  animation: panelSlideIn 0.35s var(--ease-out) both;
+.adminPasswordPanel:not([hidden]),
+.forgotPasswordPanel:not([hidden]),
+.managerRequestPanel:not([hidden]) {
+  animation: panelSlideIn 0.38s var(--ease-out) both;
 }
 
 .adminPasswordTitle {
   animation: fadeUp 0.4s var(--ease-out) both;
+}
+
+@keyframes gateAmbientDrift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(18px, -22px, 0) scale(1.08);
+  }
 }
 
 /* ---- Sidebar living details ---- */
@@ -945,7 +982,7 @@
 @keyframes gateCardIn {
   from {
     opacity: 0;
-    transform: translateY(24px) scale(0.96);
+    transform: translateY(28px) scale(0.97);
   }
   to {
     opacity: 1;

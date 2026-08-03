@@ -9,6 +9,11 @@
 
   <body>
     <div id="roleGate" class="roleGate">
+      <div class="roleGateAmbient" aria-hidden="true">
+        <span class="roleGateAmbientGlow roleGateAmbientGlow--a"></span>
+        <span class="roleGateAmbientGlow roleGateAmbientGlow--b"></span>
+        <span class="roleGateAmbientGrid"></span>
+      </div>
       <div class="roleGateCard">
         <button
           type="button"
@@ -25,21 +30,30 @@
 
         <div id="roleGateIntro" class="roleGateIntro">
           <img class="roleGateLogo" src="/assets/HebetLogo.png" alt="לוגו הבט" />
-          <h1>מאגר מתקני אימון ארצי</h1>
+          <h1 class="roleGateTitle">מאגר מתקני אימון ארצי</h1>
           <p class="roleGateSubtitle">בחרו סוג משתמש להמשך</p>
           <div class="roleGateActions">
             <button type="button" id="chooseGuest" class="roleBtn roleBtnGuest">
-              אורח
+              <span class="roleBtnLabel">אורח</span>
+              <span class="roleBtnHint">צפייה במאגר</span>
             </button>
             <button type="button" id="chooseAdmin" class="roleBtn roleBtnAdmin">
-              מנהל
+              <span class="roleBtnLabel">מנהל</span>
+              <span class="roleBtnHint">ניהול ועריכה</span>
             </button>
           </div>
         </div>
 
         <div id="adminPasswordPanel" class="adminPasswordPanel" hidden>
           <h2 class="adminPasswordTitle">כניסת מנהל</h2>
-          <label for="adminPassword">סיסמת מנהל</label>
+          <label for="adminUsername">שם</label>
+          <input
+            id="adminUsername"
+            type="text"
+            autocomplete="username"
+            placeholder="הזינו שם"
+          />
+          <label for="adminPassword">סיסמה</label>
           <div class="passwordField">
             <input
               id="adminPassword"
@@ -62,7 +76,7 @@
             </button>
           </div>
           <p id="adminPasswordError" class="adminPasswordError" hidden>
-            סיסמה שגויה
+            שם או סיסמה שגויים
           </p>
           <div class="adminPasswordActions adminPasswordActionsStack">
             <div class="adminPasswordActionsRow">
@@ -82,7 +96,7 @@
         <div id="forgotPasswordPanel" class="forgotPasswordPanel" hidden>
           <h2 class="adminPasswordTitle">שחזור סיסמה</h2>
           <p class="forgotPasswordHint">
-            הזינו את השם כפי שמופיע במערכת ומספר טלפון — ההודעה תישלח למנהל הראשי.
+            הזינו שם, מספר אישי ומספר טלפון — ההודעה תישלח למנהל הראשי.
           </p>
           <label for="forgotPasswordName">שם</label>
           <input
@@ -90,6 +104,14 @@
             type="text"
             autocomplete="name"
             placeholder="שם מנהל המתקן"
+          />
+          <label for="forgotPasswordPersonalNumber">מספר אישי</label>
+          <input
+            id="forgotPasswordPersonalNumber"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="מספר אישי"
           />
           <label for="forgotPasswordPhone">מספר טלפון</label>
           <input
@@ -110,7 +132,7 @@
         <div id="managerRequestPanel" class="managerRequestPanel" hidden>
           <h2 class="adminPasswordTitle">בקשה למנהל</h2>
           <p class="forgotPasswordHint">
-            מלאו שם וסיסמה ובחרו מתקנים לניהול. הבקשה תישלח לאישור המנהל הראשי.
+            מלאו שם, מספר אישי וסיסמה ובחרו מתקנים לניהול. הבקשה תישלח לאישור המנהל הראשי.
           </p>
           <label for="managerRequestName">שם</label>
           <input
@@ -118,6 +140,14 @@
             type="text"
             autocomplete="name"
             placeholder="השם שלכם"
+          />
+          <label for="managerRequestPersonalNumber">מספר אישי</label>
+          <input
+            id="managerRequestPersonalNumber"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="מספר אישי"
           />
           <label for="managerRequestPassword">סיסמה לבחירה</label>
           <div class="passwordField">

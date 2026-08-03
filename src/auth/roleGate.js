@@ -1,9 +1,11 @@
-import { ADMIN_PASSWORD, ROLES } from '../config/auth.js';
+import { ADMIN_USERNAME, ADMIN_PASSWORD, ROLES } from '../config/auth.js';
 import { state } from '../state.js';
 import {
   findFacilityManagerByPassword,
   findFacilityManagerByName,
+  findFacilityManagerByPersonalNumber,
   getManagerInitial,
+  loadFacilityManagers,
 } from '../data/facilityManagers.js';
 import {
   addForgotPasswordReport,
@@ -25,12 +27,15 @@ export function showRoleGate() {
     const requestPanel = document.getElementById('managerRequestPanel');
     const backBtn = document.getElementById('roleGateBack');
     const passwordInput = document.getElementById('adminPassword');
+    const usernameInput = document.getElementById('adminUsername');
     const passwordError = document.getElementById('adminPasswordError');
     const forgotName = document.getElementById('forgotPasswordName');
+    const forgotPersonalNumber = document.getElementById('forgotPasswordPersonalNumber');
     const forgotPhone = document.getElementById('forgotPasswordPhone');
     const forgotError = document.getElementById('forgotPasswordError');
     const forgotSuccess = document.getElementById('forgotPasswordSuccess');
     const requestName = document.getElementById('managerRequestName');
+    const requestPersonalNumber = document.getElementById('managerRequestPersonalNumber');
     const requestPassword = document.getElementById('managerRequestPassword');
     const requestError = document.getElementById('managerRequestError');
     const requestSuccess = document.getElementById('managerRequestSuccess');
@@ -82,6 +87,7 @@ export function showRoleGate() {
 
     function resetForgotForm() {
       if (forgotName) forgotName.value = '';
+      if (forgotPersonalNumber) forgotPersonalNumber.value = '';
       if (forgotPhone) forgotPhone.value = '';
       if (forgotError) {
         forgotError.hidden = true;
@@ -95,6 +101,7 @@ export function showRoleGate() {
 
     function resetRequestForm() {
       if (requestName) requestName.value = '';
+      if (requestPersonalNumber) requestPersonalNumber.value = '';
       if (requestPassword) requestPassword.value = '';
       if (requestError) {
         requestError.hidden = true;
@@ -116,6 +123,7 @@ export function showRoleGate() {
       setBackVisible(false);
       setCardWide(false);
       passwordInput.value = '';
+      if (usernameInput) usernameInput.value = '';
       passwordError.hidden = true;
       resetForgotForm();
       resetRequestForm();
@@ -130,7 +138,9 @@ export function showRoleGate() {
       resetForgotForm();
       resetRequestForm();
       passwordError.hidden = true;
-      passwordInput.focus();
+      if (usernameInput) usernameInput.value = '';
+      passwordInput.value = '';
+      usernameInput?.focus();
     }
 
     function showForgotPassword() {
@@ -222,27 +232,43 @@ export function showRoleGate() {
     };
 
     document.getElementById('adminPasswordSubmit').onclick = () => {
+      const username = String(usernameInput?.value ?? '').trim();
       const password = passwordInput.value;
       passwordError.hidden = true;
 
-      if (password === ADMIN_PASSWORD) {
+      if (!username || !password) {
+        passwordError.textContent = 'יש למלא שם וסיסמה';
+        passwordError.hidden = false;
+        (username ? passwordInput : usernameInput)?.focus();
+        return;
+      }
+
+      if (
+        username === ADMIN_USERNAME &&
+        password === ADMIN_PASSWORD
+      ) {
         finish(ROLES.ADMIN, null);
         return;
       }
 
-      const manager = findFacilityManagerByPassword(password);
+      const manager = loadFacilityManagers().find(
+        (item) =>
+          item.name.trim().toLowerCase() === username.toLowerCase() &&
+          item.password === password,
+      );
       if (manager) {
         finish(ROLES.ADMIN, manager);
         return;
       }
 
-      passwordError.textContent = 'סיסמה שגויה';
+      passwordError.textContent = 'שם או סיסמה שגויים';
       passwordError.hidden = false;
       passwordInput.select();
     };
 
     document.getElementById('forgotPasswordSubmit').onclick = () => {
       const name = String(forgotName?.value ?? '').trim();
+      const personalNumber = String(forgotPersonalNumber?.value ?? '').trim();
       const phone = String(forgotPhone?.value ?? '').trim();
 
       if (forgotError) {
@@ -254,9 +280,9 @@ export function showRoleGate() {
         forgotSuccess.textContent = '';
       }
 
-      if (!name || !phone) {
+      if (!name || !personalNumber || !phone) {
         if (forgotError) {
-          forgotError.textContent = 'יש למלא שם ומספר טלפון';
+          forgotError.textContent = 'יש למלא שם, מספר אישי ומספר טלפון';
           forgotError.hidden = false;
         }
         return;
@@ -272,9 +298,19 @@ export function showRoleGate() {
         return;
       }
 
+      if (manager.personalNumber !== personalNumber) {
+        if (forgotError) {
+          forgotError.textContent = 'המספר האישי אינו תואם לשם שהוזן';
+          forgotError.hidden = false;
+        }
+        forgotPersonalNumber?.select();
+        return;
+      }
+
       addForgotPasswordReport({
         managerId: manager.id,
         managerName: manager.name,
+        personalNumber: manager.personalNumber,
         phone,
       });
 
@@ -284,11 +320,13 @@ export function showRoleGate() {
         forgotSuccess.hidden = false;
       }
       if (forgotName) forgotName.value = manager.name;
+      if (forgotPersonalNumber) forgotPersonalNumber.value = manager.personalNumber;
       if (forgotPhone) forgotPhone.value = '';
     };
 
     document.getElementById('managerRequestSubmit').onclick = () => {
       const name = String(requestName?.value ?? '').trim();
+      const personalNumber = String(requestPersonalNumber?.value ?? '').trim();
       const password = String(requestPassword?.value ?? '');
       const selected = getSelectedRequestFacilities().filter((f) => f.id);
 
@@ -301,9 +339,9 @@ export function showRoleGate() {
         requestSuccess.textContent = '';
       }
 
-      if (!name || !password) {
+      if (!name || !personalNumber || !password) {
         if (requestError) {
-          requestError.textContent = 'יש למלא שם וסיסמה';
+          requestError.textContent = 'יש למלא שם, מספר אישי וסיסמה';
           requestError.hidden = false;
         }
         return;
@@ -335,7 +373,7 @@ export function showRoleGate() {
         return;
       }
 
-      if (findFacilityManagerByName(name)) {
+      if (findFacilityManagerByName(name) || name === ADMIN_USERNAME) {
         if (requestError) {
           requestError.textContent = 'השם כבר קיים במערכת כמנהל מתקן';
           requestError.hidden = false;
@@ -344,8 +382,18 @@ export function showRoleGate() {
         return;
       }
 
+      if (findFacilityManagerByPersonalNumber(personalNumber)) {
+        if (requestError) {
+          requestError.textContent = 'המספר האישי כבר קיים במערכת';
+          requestError.hidden = false;
+        }
+        requestPersonalNumber?.select();
+        return;
+      }
+
       addManagerAccessRequest({
         managerName: name,
+        personalNumber,
         password,
         facilityIds: selected.map((f) => f.id),
         facilityNames: selected.map((f) => f.name),
@@ -356,6 +404,8 @@ export function showRoleGate() {
           'הבקשה נשלחה לאישור המנהל הראשי. לאחר האישור תוכלו להיכנס עם הסיסמה שבחרתם.';
         requestSuccess.hidden = false;
       }
+      if (requestName) requestName.value = '';
+      if (requestPersonalNumber) requestPersonalNumber.value = '';
       if (requestPassword) requestPassword.value = '';
       requestFacilities?.querySelectorAll('input[type="checkbox"]').forEach((el) => {
         el.checked = false;
@@ -368,12 +418,21 @@ export function showRoleGate() {
       }
     };
 
+    if (usernameInput) {
+      usernameInput.onkeydown = (event) => {
+        if (event.key === 'Enter') {
+          passwordInput.focus();
+        }
+      };
+    }
+
     const forgotSubmitOnEnter = (event) => {
       if (event.key === 'Enter') {
         document.getElementById('forgotPasswordSubmit')?.click();
       }
     };
     if (forgotName) forgotName.onkeydown = forgotSubmitOnEnter;
+    if (forgotPersonalNumber) forgotPersonalNumber.onkeydown = forgotSubmitOnEnter;
     if (forgotPhone) forgotPhone.onkeydown = forgotSubmitOnEnter;
 
     const requestSubmitOnEnter = (event) => {
