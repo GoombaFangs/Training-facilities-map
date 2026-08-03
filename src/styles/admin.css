@@ -735,6 +735,26 @@
   color: #1f6f5a;
 }
 
+.locationStatus.is-invalid {
+  background: #fdeceb;
+  color: #a33b32;
+}
+
+.locationAreaAuto {
+  margin: 0.55rem 0 0;
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  background: #eef3f8;
+  color: var(--color-muted-strong);
+  font-size: 0.88rem;
+  font-weight: 550;
+}
+
+.locationAreaAuto.is-ready {
+  background: #e8eef8;
+  color: #1f4f7a;
+}
+
 .wizardFooter {
   display: flex;
   align-items: center;

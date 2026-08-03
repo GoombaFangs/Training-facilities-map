@@ -194,20 +194,6 @@
   line-height: var(--leading-snug);
 }
 
-.search {
-  height: auto;
-  width: 100%;
-  border-radius: 1vh;
-  border: var(--card-border);
-  margin: 0;
-  padding: 1.5vh;
-  font-family: inherit;
-  font-size: var(--text-md);
-  font-weight: var(--font-regular);
-  line-height: var(--leading-normal);
-  background: #fff;
-}
-
 @media (max-width: 768px) {
   .container {
     width: 100vw;

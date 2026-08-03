@@ -15,6 +15,29 @@
   box-sizing: border-box;
 }
 
+.cardsEmpty {
+  margin-top: 1vh;
+  padding: 2.2vh 1.8vh;
+  border-radius: var(--card-radius);
+  border: 1px dashed #d5dde5;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.cardsEmptyTitle {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+}
+
+.cardsEmptyHint {
+  margin: 0.55vh 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-muted-strong);
+  line-height: var(--leading-snug);
+}
+
 .card {
   background-color: var(--color-surface);
   width: 100%;

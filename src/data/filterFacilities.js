@@ -1,31 +1,86 @@
 /**
- * Filter facilities by type and area.
- * Returns matching features (empty filters = all features).
+ * Filter facilities by multiple catalog dimensions.
+ * Empty arrays mean "all" for that dimension. Dimensions are AND-combined;
+ * values within a dimension are OR-combined.
  *
  * @param {GeoJSON.FeatureCollection} data
- * @param {string[]} filterTypes
- * @param {string[]} filterAreas
+ * @param {{
+ *   types?: string[],
+ *   areas?: string[],
+ *   statuses?: string[],
+ *   locations?: string[],
+ *   trainingTypes?: string[],
+ *   trainingFrames?: string[],
+ *   trainingOptions?: string[],
+ * }} filters
  * @returns {GeoJSON.Feature[]}
  */
-export function filterFacilities(data, filterTypes, filterAreas) {
+export function filterFacilities(data, filters = {}) {
   const features = data?.features ?? [];
-  const hasTypeFilter = filterTypes.length > 0;
-  const hasAreaFilter = filterAreas.length > 0;
+  const types = filters.types ?? [];
+  const areas = filters.areas ?? [];
+  const statuses = filters.statuses ?? [];
+  const locations = filters.locations ?? [];
+  const trainingTypes = filters.trainingTypes ?? [];
+  const trainingFrames = filters.trainingFrames ?? [];
+  const trainingOptions = filters.trainingOptions ?? [];
 
-  if (!hasTypeFilter && !hasAreaFilter) {
-    return features;
-  }
+  const hasAny =
+    types.length > 0 ||
+    areas.length > 0 ||
+    statuses.length > 0 ||
+    locations.length > 0 ||
+    trainingTypes.length > 0 ||
+    trainingFrames.length > 0 ||
+    trainingOptions.length > 0;
+
+  if (!hasAny) return features;
 
   return features.filter((feature) => {
-    const props = feature.properties;
-    const matchesArea =
-      !hasAreaFilter || filterAreas.includes(props.areaInTheCountry);
+    const props = feature.properties ?? {};
+    const nested = props.TypesOfFacilities ?? [];
 
-    if (!matchesArea) return false;
+    if (areas.length > 0 && !areas.includes(props.areaInTheCountry)) return false;
+    if (statuses.length > 0 && !statuses.includes(props.statusOfFacility)) return false;
+    if (locations.length > 0 && !locations.includes(props.locationOfFacility)) return false;
 
-    if (!hasTypeFilter) return true;
+    if (types.length > 0) {
+      const ok = nested.some((t) => types.includes(t.typeOfFacility));
+      if (!ok) return false;
+    }
 
-    const types = props.TypesOfFacilities ?? [];
-    return types.some((t) => filterTypes.includes(t.typeOfFacility));
+    if (trainingTypes.length > 0) {
+      const ok = nested.some((t) => trainingTypes.includes(t.specificTypeOfFacility));
+      if (!ok) return false;
+    }
+
+    if (trainingFrames.length > 0) {
+      const ok = nested.some((t) => trainingFrames.includes(t.trainingFrame));
+      if (!ok) return false;
+    }
+
+    if (trainingOptions.length > 0) {
+      const ok = nested.some((t) => {
+        const options = normalizeTrainingOptions(t.trainingOptions);
+        return trainingOptions.some((selected) => options.includes(selected));
+      });
+      if (!ok) return false;
+    }
+
+    return true;
   });
+}
+
+/**
+ * @param {unknown} value
+ * @returns {string[]}
+ */
+function normalizeTrainingOptions(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+  return String(value ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
 }

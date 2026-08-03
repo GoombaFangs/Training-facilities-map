@@ -2,21 +2,27 @@ import 'leaflet/dist/leaflet.css';
 import './styles/main.css';
 
 import { createMap } from './map/createMap.js';
-import { addMarkers, highlightFacilityOnMap } from './map/markers.js';
+import { addMarkers, highlightFacilityOnMap, focusFacilityOnMap } from './map/markers.js';
 import { loadFacilities } from './data/loadFacilities.js';
 import { filterFacilities } from './data/filterFacilities.js';
 import { searchFacilities } from './data/searchFacilities.js';
 import { state } from './state.js';
 import { showRoleGate, isAdmin, isManagedFacility, getActiveFacilityManager } from './auth/roleGate.js';
 import { initSidebar } from './ui/sidebar.js';
-import { initFilters, updateFilterTagsMargin, reloadFilters } from './ui/filters.js';
+import { initFilters, reloadFilters, getActiveFilters, hasActiveFiltersOrSearch, updateFilterResultsMeta } from './ui/filters.js';
 import { renderCards } from './ui/cards.js';
-import { openPopup } from './ui/popup.js';
+import { openPopup, closePopup } from './ui/popup.js';
 import { initFacilityForm, openEditForm, refreshFacilityFormOptions } from './ui/facilityForm.js';
 import { initAdminToolbar, updateRoleUi } from './ui/adminToolbar.js';
 import { showMarkerActionMenu } from './ui/markerActions.js';
 import { initSettingsPanel } from './ui/settingsPanel.js';
 import { initMessagesPanel } from './ui/messagesPanel.js';
+import { loadMapRegionLayout, resolveAreaFromLat } from './data/mapRegionLayout.js';
+import { saveFacilities } from './data/storage.js';
+
+/** @type {number} */
+let cardPopupTimer = 0;
+const CARD_POPUP_DELAY_MS = 2800;
 
 async function init() {
   createMap('map');
@@ -45,11 +51,36 @@ async function init() {
 
   try {
     state.facilitiesData = await loadFacilities();
+    syncFacilityAreasFromLayout();
   } catch (error) {
     console.error(error);
   }
 
   await startSession();
+}
+
+/**
+ * Keep stored facility areas aligned with the configured latitude bands.
+ */
+function syncFacilityAreasFromLayout() {
+  if (!state.facilitiesData?.features) return;
+
+  const layout = loadMapRegionLayout();
+  let changed = false;
+
+  for (const feature of state.facilitiesData.features) {
+    const coords = feature.geometry?.coordinates;
+    if (!Array.isArray(coords) || coords.length < 2) continue;
+    const lat = Number(coords[1]);
+    if (!Number.isFinite(lat)) continue;
+    const area = resolveAreaFromLat(lat, layout);
+    if (feature.properties?.areaInTheCountry !== area) {
+      feature.properties.areaInTheCountry = area;
+      changed = true;
+    }
+  }
+
+  if (changed) saveFacilities(state.facilitiesData);
 }
 
 async function startSession() {
@@ -70,11 +101,7 @@ async function startSession() {
 function refreshView() {
   if (!state.facilitiesData) return;
 
-  const filtered = filterFacilities(
-    state.facilitiesData,
-    state.filterTypes,
-    state.filterAreas,
-  );
+  const filtered = filterFacilities(state.facilitiesData, getActiveFilters());
   const visible = searchFacilities(filtered, state.searchQuery);
 
   // Facility managers only see their assigned facilities in the sidebar list
@@ -82,27 +109,46 @@ function refreshView() {
     ? visible.filter((feature) => isManagedFacility(feature.properties?.id))
     : visible;
 
-  updateFilterTagsMargin();
+  const totalForRole = getActiveFacilityManager()
+    ? (state.facilitiesData.features ?? []).filter((feature) =>
+        isManagedFacility(feature.properties?.id),
+      ).length
+    : (state.facilitiesData.features ?? []).length;
+
+  updateFilterResultsMeta(listFeatures.length, totalForRole);
   renderCards(
     document.getElementById('cards'),
     listFeatures,
-    openPopup,
+    onCardClick,
     refreshView,
   );
 
-  const hasActiveFilters =
-    state.filterTypes.length > 0 ||
-    state.filterAreas.length > 0 ||
-    state.searchQuery.trim().length > 0;
-
-  const visibleNames = hasActiveFilters
+  const visibleNames = hasActiveFiltersOrSearch()
     ? new Set(visible.map((f) => f.properties.nameOfFacility))
     : null;
 
   addMarkers(state.facilitiesData, onMarkerClick, visibleNames);
 }
 
+/**
+ * Sidebar card: zoom to facility first, then open details after a short pause.
+ * @param {GeoJSON.Feature} feature
+ */
+function onCardClick(feature) {
+  closePopup();
+  window.clearTimeout(cardPopupTimer);
+  focusFacilityOnMap(feature);
+
+  cardPopupTimer = window.setTimeout(() => {
+    cardPopupTimer = 0;
+    openPopup(feature);
+  }, CARD_POPUP_DELAY_MS);
+}
+
 function onMarkerClick(feature, layer) {
+  window.clearTimeout(cardPopupTimer);
+  cardPopupTimer = 0;
+
   if (isAdmin() && isManagedFacility(feature.properties?.id)) {
     showMarkerActionMenu(feature, layer, {
       onView: openPopup,

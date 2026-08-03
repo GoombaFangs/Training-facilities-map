@@ -1,12 +1,12 @@
 import L from 'leaflet';
 import {
   FACILITY_STATUSES,
-  AREAS,
 } from '../config/constants.js';
 import {
   getCatalogList,
   appendToOptionCatalogs,
 } from '../data/optionCatalogs.js';
+import { resolveAreaFromLat } from '../data/mapRegionLayout.js';
 import { state } from '../state.js';
 import { isAdmin, isManagedFacility, getActiveFacilityManager } from '../auth/roleGate.js';
 import {
@@ -35,6 +35,9 @@ let onSaved = () => {};
 let editingId = null;
 let mapClickHandler = null;
 let adminMapCreateBound = false;
+/** True while the wizard is hidden so the user can pick a point on the map. */
+let pickingFromForm = false;
+let pickEscapeHandler = null;
 let currentStep = 1;
 const TOTAL_STEPS = 3;
 /** @type {string[]} */
@@ -53,7 +56,7 @@ export function initFacilityForm({ onSaved: savedCb }) {
 
   registerPinCursorContext(() => ({
     isPinDropping,
-    mapClickActive: Boolean(mapClickHandler),
+    mapClickActive: Boolean(mapClickHandler) || pickingFromForm,
     adminMapCreateBound,
   }));
 
@@ -66,8 +69,7 @@ export function initFacilityForm({ onSaved: savedCb }) {
   document.getElementById('wizardNext').addEventListener('click', goNext);
   document.getElementById('wizardBack').addEventListener('click', goBack);
   document.getElementById('wizardSaveCustoms').addEventListener('click', onSaveCustomValues);
-  document.getElementById('formLat').addEventListener('input', updateLocationStatus);
-  document.getElementById('formLng').addEventListener('input', updateLocationStatus);
+  bindCoordinateInputs();
   document.getElementById('formTypeOfFacility').addEventListener('change', () => {
     syncOtherInput(document.getElementById('formTypeOfFacility'));
     refreshSpecificTypes();
@@ -99,8 +101,8 @@ export function openCreateForm(coords = null) {
   resetFormFields();
 
   if (coords) {
-    document.getElementById('formLat').value = coords.lat.toFixed(6);
-    document.getElementById('formLng').value = coords.lng.toFixed(6);
+    setCoordinateInput('formLat', coords.lat);
+    setCoordinateInput('formLng', coords.lng);
   }
 
   showForm();
@@ -129,13 +131,11 @@ export function openEditForm(feature) {
   document.getElementById('formContactRole').value = props.contactRoleOfFacility ?? '';
   document.getElementById('formStatus').value =
     props.statusOfFacility ?? getMergedStatuses()[0] ?? FACILITY_STATUSES[0].value;
-  document.getElementById('formLat').value = Number(lat).toFixed(6);
-  document.getElementById('formLng').value = Number(lng).toFixed(6);
+  setCoordinateInput('formLat', Number(lat));
+  setCoordinateInput('formLng', Number(lng));
   document.getElementById('formComments').value = type.comments ?? '';
 
   setSelectOrOther(document.getElementById('formLocation'), props.locationOfFacility);
-  document.getElementById('formAreaInTheCountry').value =
-    props.areaInTheCountry ?? getMergedAreas()[0] ?? AREAS[0].value;
   setSelectOrOther(document.getElementById('formTypeOfFacility'), type.typeOfFacility);
   refreshSpecificTypes(type.specificTypeOfFacility);
   setSelectOrOther(document.getElementById('formTrainingFrame'), type.trainingFrame);
@@ -148,6 +148,7 @@ export function openEditForm(feature) {
 
 function showForm() {
   closePopup();
+  pickingFromForm = false;
   stopPickOnMap();
   clearError();
   goToStep(1);
@@ -170,12 +171,18 @@ export function closeForm(options = {}) {
   const { animate = true } = options;
   const backdrop = document.getElementById('facilityFormBackdrop');
   if (!backdrop || backdrop.hidden) {
+    // Form may be hidden while picking on the map — still clear pick mode
+    if (pickingFromForm || mapClickHandler) {
+      pickingFromForm = false;
+      stopPickOnMap();
+    }
     updateAdminMapHint();
     syncMapPinCursor();
     return;
   }
   if (isClosingForm) return;
 
+  pickingFromForm = false;
   stopPickOnMap();
   clearError();
   resetSaveCustomsButton();
@@ -219,7 +226,6 @@ function resetFormFields() {
   refillAllOptionLists();
   document.getElementById('facilityForm').reset();
   document.getElementById('formTypeOfFacility').selectedIndex = 0;
-  document.getElementById('formAreaInTheCountry').selectedIndex = 0;
   document.getElementById('formStatus').selectedIndex = 0;
   document.getElementById('formLocation').selectedIndex = 0;
   document.getElementById('formTrainingFrame').selectedIndex = 0;
@@ -249,10 +255,6 @@ function getMergedTrainingOptions() {
   return getCatalogList('trainingOptions');
 }
 
-function getMergedAreas() {
-  return getCatalogList('areas');
-}
-
 function getMergedStatuses() {
   return getCatalogList('statuses');
 }
@@ -269,11 +271,6 @@ function refillAllOptionLists() {
     document.getElementById('formTypeOfFacility'),
     getMergedFacilityTypes(),
     true,
-  );
-  fillSelect(
-    document.getElementById('formAreaInTheCountry'),
-    getMergedAreas(),
-    false,
   );
   fillSelect(
     document.getElementById('formStatus'),
@@ -306,7 +303,6 @@ export function refreshFacilityFormOptions() {
 function refreshOptionListsPreservingValues() {
   const snapshot = {
     location: getSelectOrOtherValue(document.getElementById('formLocation')),
-    area: document.getElementById('formAreaInTheCountry').value,
     status: document.getElementById('formStatus').value,
     type: getSelectOrOtherValue(document.getElementById('formTypeOfFacility')),
     specific: getSelectOrOtherValue(document.getElementById('formSpecificType')),
@@ -332,7 +328,6 @@ function refreshOptionListsPreservingValues() {
   document.getElementById('formComments').value = snapshot.comments;
   document.getElementById('formLat').value = snapshot.lat;
   document.getElementById('formLng').value = snapshot.lng;
-  document.getElementById('formAreaInTheCountry').value = snapshot.area;
   document.getElementById('formStatus').value = snapshot.status;
 
   setSelectOrOther(document.getElementById('formLocation'), snapshot.location);
@@ -756,9 +751,9 @@ function validateStep(step) {
   }
 
   if (step === 2) {
-    const lat = Number(document.getElementById('formLat').value);
-    const lng = Number(document.getElementById('formLng').value);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    const lat = parseCoordinate(document.getElementById('formLat').value);
+    const lng = parseCoordinate(document.getElementById('formLng').value);
+    if (lat == null || lng == null) {
       showError('יש לבחור מיקום על המפה או להזין קואורדינטות תקינות');
       return false;
     }
@@ -785,16 +780,77 @@ function clearError() {
 
 function updateLocationStatus() {
   const status = document.getElementById('locationStatus');
-  const lat = Number(document.getElementById('formLat').value);
-  const lng = Number(document.getElementById('formLng').value);
+  const areaEl = document.getElementById('formAreaAuto');
+  const lat = parseCoordinate(document.getElementById('formLat').value);
+  const lng = parseCoordinate(document.getElementById('formLng').value);
 
-  if (Number.isFinite(lat) && Number.isFinite(lng)) {
-    status.textContent = `מיקום נבחר: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    status.classList.add('is-ready');
+  if (lat != null && lng != null) {
+    const inside = isPointInIsrael(lat, lng);
+    const area = resolveAreaFromLat(lat);
+    status.textContent = inside
+      ? `מיקום נבחר: ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+      : `מיקום מחוץ לגבולות: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    status.classList.toggle('is-ready', inside);
+    status.classList.toggle('is-invalid', !inside);
+    if (areaEl) {
+      areaEl.textContent = inside
+        ? `אזור בארץ (אוטומטי): ${area}`
+        : 'אזור בארץ ייקבע אחרי בחירת מיקום תקין';
+      areaEl.classList.toggle('is-ready', inside);
+    }
   } else {
     status.textContent = 'טרם נבחר מיקום';
-    status.classList.remove('is-ready');
+    status.classList.remove('is-ready', 'is-invalid');
+    if (areaEl) {
+      areaEl.textContent = 'האזור בארץ ייקבע אוטומטית לפי המיקום';
+      areaEl.classList.remove('is-ready');
+    }
   }
+}
+
+/**
+ * Parse lat/lng from text or number inputs (supports comma decimals).
+ * @param {unknown} raw
+ * @returns {number | null}
+ */
+function parseCoordinate(raw) {
+  if (raw == null) return null;
+  const text = String(raw).trim().replace(',', '.');
+  if (!text) return null;
+  const value = Number(text);
+  return Number.isFinite(value) ? value : null;
+}
+
+/**
+ * @param {string} inputId
+ * @param {number} value
+ */
+function setCoordinateInput(inputId, value) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  el.value = Number(value).toFixed(6);
+}
+
+function bindCoordinateInputs() {
+  ['formLat', 'formLng'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.addEventListener('input', updateLocationStatus);
+    el.addEventListener('change', () => {
+      const parsed = parseCoordinate(el.value);
+      if (parsed != null) el.value = parsed.toFixed(6);
+      updateLocationStatus();
+    });
+    // Prevent accidental scroll-changing of coordinates
+    el.addEventListener(
+      'wheel',
+      (event) => {
+        if (document.activeElement === el) event.preventDefault();
+      },
+      { passive: false },
+    );
+  });
 }
 
 function onSaveCustomValues() {
@@ -928,6 +984,9 @@ function onSubmit(event) {
     return;
   }
 
+  const lat = parseCoordinate(document.getElementById('formLat').value);
+  const lng = parseCoordinate(document.getElementById('formLng').value);
+
   const values = {
     nameOfFacility: document.getElementById('formName').value,
     unitOwningTheFacility: document.getElementById('formUnit').value,
@@ -936,9 +995,9 @@ function onSubmit(event) {
     contactRoleOfFacility: document.getElementById('formContactRole').value,
     statusOfFacility: document.getElementById('formStatus').value,
     locationOfFacility: getSelectOrOtherValue(document.getElementById('formLocation')),
-    areaInTheCountry: document.getElementById('formAreaInTheCountry').value,
-    lat: document.getElementById('formLat').value,
-    lng: document.getElementById('formLng').value,
+    areaInTheCountry: resolveAreaFromLat(lat ?? NaN),
+    lat: String(lat ?? ''),
+    lng: String(lng ?? ''),
     typeOfFacility: getSelectOrOtherValue(document.getElementById('formTypeOfFacility')),
     specificTypeOfFacility: getSelectOrOtherValue(document.getElementById('formSpecificType')),
     trainingFrame: getSelectOrOtherValue(document.getElementById('formTrainingFrame')),
@@ -1003,12 +1062,15 @@ function onSubmit(event) {
 }
 
 function startPickOnMap() {
-  if (!state.map) return;
+  if (!state.map || isPinDropping) return;
 
   const hint = document.getElementById('mapPickHint');
-  hint.classList.remove('is-idle');
-  hint.hidden = false;
-  hint.textContent = 'בחרו מיקום במפה';
+  if (hint) {
+    hint.classList.remove('is-idle');
+    hint.hidden = false;
+    hint.textContent = 'בחרו מיקום במפה · Esc לביטול';
+  }
+
   const backdrop = document.getElementById('facilityFormBackdrop');
   window.clearTimeout(formCloseTimer);
   isClosingForm = false;
@@ -1016,30 +1078,95 @@ function startPickOnMap() {
   backdrop.hidden = true;
 
   stopPickOnMap(false);
-  syncMapPinCursor();
+  pickingFromForm = true;
+  bindPickEscape();
 
   mapClickHandler = (e) => {
+    if (isPinDropping) return;
+
     if (!isPointInIsrael(e.latlng.lat, e.latlng.lng)) {
       showOutsideIsraelHint();
+      // Keep listening — do not end pick mode on invalid click
       return;
     }
+
+    const { lat, lng } = e.latlng;
+    // Stop further picks immediately; form resumes after pin animation
+    stopPickOnMap(false);
     playPinDropAnimation(e.latlng, () => {
-      document.getElementById('formLat').value = e.latlng.lat.toFixed(6);
-      document.getElementById('formLng').value = e.latlng.lng.toFixed(6);
+      setCoordinateInput('formLat', lat);
+      setCoordinateInput('formLng', lng);
       updateLocationStatus();
-      stopPickOnMap();
-      const formBackdrop = document.getElementById('facilityFormBackdrop');
-      formBackdrop.hidden = false;
-      formBackdrop.classList.remove('is-opening', 'is-closing');
-      void formBackdrop.offsetWidth;
-      formBackdrop.classList.add('is-opening');
-      goToStep(2);
-      updateAdminMapHint();
-      syncMapPinCursor();
+      resumeFormAfterMapPick(2);
     });
   };
 
-  state.map.once('click', mapClickHandler);
+  state.map.on('click', mapClickHandler);
+  syncMapPinCursor();
+}
+
+/**
+ * Restore the wizard after a successful map pick.
+ * @param {number} [step=2]
+ */
+function resumeFormAfterMapPick(step = 2) {
+  pickingFromForm = false;
+  stopPickOnMap();
+
+  const formBackdrop = document.getElementById('facilityFormBackdrop');
+  if (!formBackdrop) return;
+
+  formBackdrop.hidden = false;
+  formBackdrop.classList.remove('is-opening', 'is-closing');
+  void formBackdrop.offsetWidth;
+  formBackdrop.classList.add('is-opening');
+  goToStep(step);
+  updateLocationStatus();
+  updateAdminMapHint();
+  syncMapPinCursor();
+}
+
+/**
+ * Cancel map pick and reopen the wizard if we came from the form.
+ */
+function cancelPickOnMap() {
+  if (!pickingFromForm && !mapClickHandler) return;
+  pickingFromForm = false;
+  stopPickOnMap();
+
+  const formBackdrop = document.getElementById('facilityFormBackdrop');
+  if (formBackdrop) {
+    formBackdrop.hidden = false;
+    formBackdrop.classList.remove('is-opening', 'is-closing');
+    void formBackdrop.offsetWidth;
+    formBackdrop.classList.add('is-opening');
+    goToStep(2);
+  }
+
+  const hint = document.getElementById('mapPickHint');
+  if (hint) {
+    hint.hidden = true;
+    hint.classList.remove('is-idle');
+  }
+  updateAdminMapHint();
+  syncMapPinCursor();
+}
+
+function bindPickEscape() {
+  unbindPickEscape();
+  pickEscapeHandler = (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelPickOnMap();
+    }
+  };
+  window.addEventListener('keydown', pickEscapeHandler);
+}
+
+function unbindPickEscape() {
+  if (!pickEscapeHandler) return;
+  window.removeEventListener('keydown', pickEscapeHandler);
+  pickEscapeHandler = null;
 }
 
 /**
@@ -1050,6 +1177,7 @@ function stopPickOnMap(clearCursor = true) {
     state.map.off('click', mapClickHandler);
     mapClickHandler = null;
   }
+  unbindPickEscape();
   if (clearCursor) syncMapPinCursor();
 }
 
@@ -1074,7 +1202,7 @@ export function setAdminMapCreateEnabled(enabled) {
 
 function onAdminMapCreate(e) {
   if (!isAdmin() || !adminMapCreateBound || isPinDropping) return;
-  if (mapClickHandler) return;
+  if (mapClickHandler || pickingFromForm) return;
 
   if (hasOpenMarkerMenu()) {
     closeMarkerActionMenu();
@@ -1107,7 +1235,7 @@ function updateAdminMapHint() {
   const hint = document.getElementById('mapPickHint');
   if (!hint) return;
 
-  if (mapClickHandler) return;
+  if (mapClickHandler || pickingFromForm) return;
 
   const formOpen = !document.getElementById('facilityFormBackdrop').hidden;
   if (isAdmin() && !formOpen) {
@@ -1197,10 +1325,6 @@ function playPinDropAnimation(latlng, onDone) {
       onDone?.();
     }, 820);
   }, 90);
-}
-
-export function startAddFacilityFlow() {
-  openCreateForm();
 }
 
 function escapeAttr(value) {

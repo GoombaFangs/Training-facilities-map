@@ -9,9 +9,17 @@ import {
   saveFacilityManagers,
   createManagerId,
 } from '../data/facilityManagers.js';
+import {
+  loadMapRegionLayout,
+  saveMapRegionLayout,
+  validateMapRegionLayout,
+  resolveAreaFromLat,
+  DEFAULT_MAP_REGION_LAYOUT,
+} from '../data/mapRegionLayout.js';
 import { ADMIN_PASSWORD } from '../config/auth.js';
 import { isMainAdmin } from '../auth/roleGate.js';
 import { state } from '../state.js';
+import { saveFacilities } from '../data/storage.js';
 
 /** @type {(() => void) | null} */
 let onCatalogsChanged = null;
@@ -20,9 +28,14 @@ let onCatalogsChanged = null;
 let draft = {};
 /** @type {import('../data/facilityManagers.js').FacilityManager[]} */
 let usersDraft = [];
+/** @type {{ northFromLat: string, southBelowLat: string }} */
+let mapLayoutDraft = {
+  northFromLat: String(DEFAULT_MAP_REGION_LAYOUT.northFromLat),
+  southBelowLat: String(DEFAULT_MAP_REGION_LAYOUT.southBelowLat),
+};
 /** @type {import('../data/optionCatalogs.js').CatalogKey} */
 let activeKey = 'locations';
-/** @type {'options' | 'users'} */
+/** @type {'options' | 'users' | 'mapLayout'} */
 let activeTab = 'options';
 let isClosing = false;
 let closeTimer = 0;
@@ -42,7 +55,7 @@ export function initSettingsPanel(options = {}) {
   document.querySelectorAll('[data-settings-tab]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const tab = btn.dataset.settingsTab;
-      if (tab === 'options' || tab === 'users') setActiveTab(tab);
+      if (tab === 'options' || tab === 'users' || tab === 'mapLayout') setActiveTab(tab);
     });
   });
 
@@ -50,6 +63,7 @@ export function initSettingsPanel(options = {}) {
     if (e.target.id === 'settingsBackdrop') closeSettingsPanel();
   });
 
+  bindMapLayoutInputs();
   renderNav();
 }
 
@@ -66,6 +80,11 @@ export function openSettingsPanel() {
     ...user,
     facilityIds: [...(user.facilityIds ?? [])],
   }));
+  const layout = loadMapRegionLayout();
+  mapLayoutDraft = {
+    northFromLat: layout.northFromLat.toFixed(6),
+    southBelowLat: layout.southBelowLat.toFixed(6),
+  };
   activeKey = CATALOG_KEYS[0];
   activeTab = 'options';
 
@@ -76,10 +95,12 @@ export function openSettingsPanel() {
 
   clearSettingsError();
   clearUsersError();
+  clearMapLayoutError();
   setActiveTab('options');
   renderNav();
   renderActiveList();
   renderUsersList();
+  renderMapLayoutFields();
 }
 
 /**
@@ -124,12 +145,13 @@ function finishClose(backdrop) {
 }
 
 /**
- * @param {'options' | 'users'} tab
+ * @param {'options' | 'users' | 'mapLayout'} tab
  */
 function setActiveTab(tab) {
   activeTab = tab;
   clearSettingsError();
   clearUsersError();
+  clearMapLayoutError();
 
   document.querySelectorAll('[data-settings-tab]').forEach((btn) => {
     const isActive = btn.dataset.settingsTab === tab;
@@ -139,11 +161,44 @@ function setActiveTab(tab) {
 
   const optionsSection = document.getElementById('settingsOptionsSection');
   const usersSection = document.getElementById('settingsUsersSection');
+  const mapLayoutSection = document.getElementById('settingsMapLayoutSection');
   if (optionsSection) optionsSection.hidden = tab !== 'options';
   if (usersSection) usersSection.hidden = tab !== 'users';
+  if (mapLayoutSection) mapLayoutSection.hidden = tab !== 'mapLayout';
 
   const saveBtn = document.getElementById('settingsSave');
   if (saveBtn) saveBtn.hidden = false;
+
+  if (tab === 'mapLayout') renderMapLayoutFields();
+}
+
+function bindMapLayoutInputs() {
+  const northInput = document.getElementById('settingsNorthFromLat');
+  const southInput = document.getElementById('settingsSouthBelowLat');
+  northInput?.addEventListener('input', () => {
+    mapLayoutDraft.northFromLat = northInput.value;
+  });
+  southInput?.addEventListener('input', () => {
+    mapLayoutDraft.southBelowLat = southInput.value;
+  });
+}
+
+function renderMapLayoutFields() {
+  const northInput = document.getElementById('settingsNorthFromLat');
+  const southInput = document.getElementById('settingsSouthBelowLat');
+  if (northInput) northInput.value = mapLayoutDraft.northFromLat;
+  if (southInput) southInput.value = mapLayoutDraft.southBelowLat;
+}
+
+/**
+ * @param {unknown} raw
+ * @returns {number | null}
+ */
+function parseLayoutCoordinate(raw) {
+  const text = String(raw ?? '').trim().replace(',', '.');
+  if (!text) return null;
+  const value = Number(text);
+  return Number.isFinite(value) ? value : null;
 }
 
 function renderNav() {
@@ -401,6 +456,7 @@ function addUserDraftItem() {
 function saveSettings() {
   clearSettingsError();
   clearUsersError();
+  clearMapLayoutError();
 
   /** @type {Record<string, string[]>} */
   const cleaned = {};
@@ -468,10 +524,51 @@ function saveSettings() {
     });
   }
 
+  const northFromLat = parseLayoutCoordinate(mapLayoutDraft.northFromLat);
+  const southBelowLat = parseLayoutCoordinate(mapLayoutDraft.southBelowLat);
+  if (northFromLat == null || southBelowLat == null) {
+    showMapLayoutError('יש להזין קווי רוחב תקינים לפריסת המפה');
+    setActiveTab('mapLayout');
+    return;
+  }
+
+  const layout = { northFromLat, southBelowLat };
+  const layoutError = validateMapRegionLayout(layout);
+  if (layoutError) {
+    showMapLayoutError(layoutError);
+    setActiveTab('mapLayout');
+    return;
+  }
+
   saveOptionCatalogs(/** @type {any} */ (cleaned));
   saveFacilityManagers(cleanedUsers);
+  saveMapRegionLayout(layout);
+  reclassifyFacilitiesByLayout(layout);
   onCatalogsChanged?.();
   closeSettingsPanel();
+}
+
+/**
+ * Update every facility's area from the current latitude bands.
+ * @param {import('../data/mapRegionLayout.js').MapRegionLayout} layout
+ */
+function reclassifyFacilitiesByLayout(layout) {
+  if (!state.facilitiesData?.features) return;
+
+  let changed = false;
+  for (const feature of state.facilitiesData.features) {
+    const coords = feature.geometry?.coordinates;
+    if (!Array.isArray(coords) || coords.length < 2) continue;
+    const lat = Number(coords[1]);
+    if (!Number.isFinite(lat)) continue;
+    const area = resolveAreaFromLat(lat, layout);
+    if (feature.properties?.areaInTheCountry !== area) {
+      feature.properties.areaInTheCountry = area;
+      changed = true;
+    }
+  }
+
+  if (changed) saveFacilities(state.facilitiesData);
 }
 
 function showSettingsError(message) {
@@ -497,6 +594,20 @@ function showUsersError(message) {
 
 function clearUsersError() {
   const el = document.getElementById('settingsUsersError');
+  if (!el) return;
+  el.hidden = true;
+  el.textContent = '';
+}
+
+function showMapLayoutError(message) {
+  const el = document.getElementById('settingsMapLayoutError');
+  if (!el) return;
+  el.hidden = false;
+  el.textContent = message;
+}
+
+function clearMapLayoutError() {
+  const el = document.getElementById('settingsMapLayoutError');
   if (!el) return;
   el.hidden = true;
   el.textContent = '';

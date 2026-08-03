@@ -6,14 +6,11 @@ import {
   getRoleBadgeLetter,
   getRoleBadgeLabel,
 } from '../auth/roleGate.js';
-import { startAddFacilityFlow, setAdminMapCreateEnabled } from './facilityForm.js';
+import { setAdminMapCreateEnabled } from './facilityForm.js';
 import { openSettingsPanel } from './settingsPanel.js';
 import { openMessagesPanel, updateMessagesBadge } from './messagesPanel.js';
 
 export function initAdminToolbar() {
-  document.getElementById('addFacilityBtn').addEventListener('click', () => {
-    startAddFacilityFlow();
-  });
   document.getElementById('settingsBtn')?.addEventListener('click', () => {
     openSettingsPanel();
   });
@@ -23,7 +20,6 @@ export function initAdminToolbar() {
 }
 
 export function updateRoleUi() {
-  const toolbar = document.getElementById('adminToolbar');
   const settingsBtn = document.getElementById('settingsBtn');
   const messagesBtn = document.getElementById('messagesBtn');
   const badge = document.getElementById('roleBadge');
@@ -31,7 +27,6 @@ export function updateRoleUi() {
 
   const admin = isAdmin();
   const mainAdmin = isMainAdmin();
-  toolbar.hidden = !admin;
   if (settingsBtn) settingsBtn.hidden = !mainAdmin;
   if (messagesBtn) messagesBtn.hidden = !mainAdmin;
   app.classList.toggle('is-admin', admin);

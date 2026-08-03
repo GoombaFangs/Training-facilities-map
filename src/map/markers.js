@@ -114,6 +114,37 @@ export function highlightFacilityOnMap(featureId) {
 }
 
 /**
+ * Fly the map to a facility and highlight its marker.
+ * @param {GeoJSON.Feature} feature
+ * @param {{ zoom?: number, duration?: number }} [options]
+ */
+export function focusFacilityOnMap(feature, options = {}) {
+  if (!state.map || !feature?.geometry?.coordinates) return;
+
+  const { zoom = 12, duration = 1.35 } = options;
+  const [lng, lat] = feature.geometry.coordinates;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+  clearFacilityHighlight(false);
+
+  const currentZoom = state.map.getZoom();
+  const targetZoom = Math.max(currentZoom, zoom);
+
+  state.map.flyTo([lat, lng], targetZoom, {
+    animate: true,
+    duration,
+    easeLinearity: 0.35,
+  });
+
+  window.clearTimeout(highlightFlyTimer);
+  highlightFlyTimer = window.setTimeout(() => {
+    highlightFlyTimer = 0;
+    const layer = findMarkerByFeatureId(feature.properties?.id);
+    if (layer) applyHighlightToLayer(layer);
+  }, Math.round(duration * 1000) + 100);
+}
+
+/**
  * @param {L.Marker} layer
  */
 function applyHighlightToLayer(layer) {

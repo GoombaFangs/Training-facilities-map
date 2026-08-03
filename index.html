@@ -212,37 +212,112 @@
           </div>
           <h1 class="appTitle">מאגר מתקני אימון ארצי</h1>
 
-          <div id="adminToolbar" class="adminToolbar" hidden>
-            <button type="button" id="addFacilityBtn" class="adminBtn adminBtnPrimary">
-              הוסף מתקן
+          <label class="searchField" for="search">
+            <span class="searchFieldIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M20 20l-3.5-3.5" stroke-linecap="round"></path>
+              </svg>
+            </span>
+            <input
+              type="search"
+              id="search"
+              class="search"
+              placeholder="חיפוש לפי שם, יחידה, מיקום, איש קשר..."
+              autocomplete="off"
+              aria-label="חיפוש מתקנים"
+            />
+            <button type="button" id="searchClear" class="searchClear" hidden aria-label="נקה חיפוש">
+              &times;
+            </button>
+          </label>
+
+          <div class="filterToolbar">
+            <button
+              type="button"
+              id="filterPanelToggle"
+              class="filterPanelToggle"
+              aria-expanded="false"
+              aria-controls="filterPanel"
+            >
+              <svg class="filterPanelToggleIcon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 5h16M7 12h10M10 19h4" stroke-linecap="round"></path>
+              </svg>
+              <span>סינון</span>
+              <span id="filterCountBadge" class="filterCountBadge" hidden>0</span>
+            </button>
+            <p id="filterResultsMeta" class="filterResultsMeta">מתקנים</p>
+          </div>
+
+          <div id="filterActiveBar" class="filterActiveBar" hidden>
+            <div id="filterTags" class="filterTags" role="list" aria-label="סינונים פעילים"></div>
+            <button type="button" id="filterClearAll" class="filterClearAll">
+              נקה הכל
             </button>
           </div>
 
-          <input
-            type="search"
-            id="search"
-            class="search"
-            placeholder="הקלד שורת חיפוש..."
-            autocomplete="off"
-          />
-
-          <div id="filterType" class="filtering">
-            <div id="filterTypeHeader" class="filteringHeader">
-              <p class="filteringText">סוג מתקן</p>
-              <div id="filterTypeIcon" class="filteringIcon" aria-hidden="true"></div>
+          <div id="filterPanel" class="filterPanel" hidden>
+            <div class="filterPanelHead">
+              <div>
+                <h2 class="filterPanelTitle">סינון מתקדם</h2>
+                <p class="filterPanelHint">ניתן לבחור כמה ערכים בכל קטגוריה</p>
+              </div>
+              <button type="button" id="filterPanelClose" class="filterPanelClose" aria-label="סגור סינון">
+                &times;
+              </button>
             </div>
-            <div id="filterOptionsType" class="filterOptions"></div>
-          </div>
-
-          <div id="filterArea" class="filtering">
-            <div id="filterAreaHeader" class="filteringHeader">
-              <p class="filteringText">אזור בארץ</p>
-              <div id="filterAreaIcon" class="filteringIcon" aria-hidden="true"></div>
+            <div class="filterPanelScroll">
+              <section class="filterSection is-open">
+                <button type="button" class="filterSectionToggle" data-filter-section-toggle aria-expanded="true">
+                  <span>סטטוס</span>
+                  <span class="filterSectionChevron" aria-hidden="true"></span>
+                </button>
+                <div id="filterChipsStatuses" class="filterChipGroup"></div>
+              </section>
+              <section class="filterSection is-open">
+                <button type="button" class="filterSectionToggle" data-filter-section-toggle aria-expanded="true">
+                  <span>אזור בארץ</span>
+                  <span class="filterSectionChevron" aria-hidden="true"></span>
+                </button>
+                <div id="filterChipsAreas" class="filterChipGroup"></div>
+              </section>
+              <section class="filterSection is-open">
+                <button type="button" class="filterSectionToggle" data-filter-section-toggle aria-expanded="true">
+                  <span>סוג מתקן</span>
+                  <span class="filterSectionChevron" aria-hidden="true"></span>
+                </button>
+                <div id="filterChipsTypes" class="filterChipGroup"></div>
+              </section>
+              <section class="filterSection">
+                <button type="button" class="filterSectionToggle" data-filter-section-toggle aria-expanded="false">
+                  <span>מיקום / בסיס</span>
+                  <span class="filterSectionChevron" aria-hidden="true"></span>
+                </button>
+                <div id="filterChipsLocations" class="filterChipGroup"></div>
+              </section>
+              <section class="filterSection">
+                <button type="button" class="filterSectionToggle" data-filter-section-toggle aria-expanded="false">
+                  <span>סוג אימון</span>
+                  <span class="filterSectionChevron" aria-hidden="true"></span>
+                </button>
+                <div id="filterChipsTrainingTypes" class="filterChipGroup"></div>
+              </section>
+              <section class="filterSection">
+                <button type="button" class="filterSectionToggle" data-filter-section-toggle aria-expanded="false">
+                  <span>מסגרת מתאמנת</span>
+                  <span class="filterSectionChevron" aria-hidden="true"></span>
+                </button>
+                <div id="filterChipsTrainingFrames" class="filterChipGroup"></div>
+              </section>
+              <section class="filterSection">
+                <button type="button" class="filterSectionToggle" data-filter-section-toggle aria-expanded="false">
+                  <span>סוגי אימון</span>
+                  <span class="filterSectionChevron" aria-hidden="true"></span>
+                </button>
+                <div id="filterChipsTrainingOptions" class="filterChipGroup"></div>
+              </section>
             </div>
-            <div id="filterOptionsArea" class="filterOptions"></div>
           </div>
-
-          <div id="filterTags" class="filterTags"></div>
         </div>
 
         <div id="cards" class="cards"></div>
@@ -378,10 +453,6 @@
                 />
               </div>
               <div class="wizardField">
-                <span>אזור בארץ</span>
-                <select id="formAreaInTheCountry"></select>
-              </div>
-              <div class="wizardField">
                 <span>סוג מתקן</span>
                 <select id="formTypeOfFacility" data-other-for="formTypeOther"></select>
                 <input
@@ -445,15 +516,28 @@
               <div class="locationCoords">
                 <label class="wizardField">
                   <span>קו רוחב</span>
-                  <input id="formLat" type="number" step="any" placeholder="31.500000" />
+                  <input
+                    id="formLat"
+                    type="text"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    placeholder="31.500000"
+                  />
                 </label>
                 <label class="wizardField">
                   <span>קו אורך</span>
-                  <input id="formLng" type="number" step="any" placeholder="35.000000" />
+                  <input
+                    id="formLng"
+                    type="text"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    placeholder="35.000000"
+                  />
                 </label>
               </div>
             </div>
             <p id="locationStatus" class="locationStatus">טרם נבחר מיקום</p>
+            <p id="formAreaAuto" class="locationAreaAuto">האזור בארץ ייקבע אוטומטית לפי המיקום</p>
           </section>
 
           <section class="wizardPanel" data-panel="3">
@@ -542,6 +626,16 @@
           >
             ניהול משתמשים
           </button>
+          <button
+            type="button"
+            class="settingsTab"
+            role="tab"
+            id="settingsTabMapLayout"
+            data-settings-tab="mapLayout"
+            aria-selected="false"
+          >
+            פריסת מפה
+          </button>
         </div>
 
         <div
@@ -586,6 +680,54 @@
             </div>
             <p id="settingsUsersError" class="settingsError" hidden></p>
             <ul id="settingsUsersList" class="settingsUsersList"></ul>
+          </div>
+        </div>
+
+        <div
+          id="settingsMapLayoutSection"
+          class="settingsSection"
+          role="tabpanel"
+          aria-labelledby="settingsTabMapLayout"
+          hidden
+        >
+          <div class="settingsMapLayoutMain">
+            <div class="settingsMainTop">
+              <div>
+                <h3 class="settingsListTitle">פריסת מפה — אזורים</h3>
+                <p class="settingsUsersHint">
+                  האזור בארץ נקבע אוטומטית לפי קו הרוחב של המתקן. הגדירו מאיזה קו רוחב מתחיל הצפון, ומאיזה קו רוחב מתחיל הדרום. המרכז הוא כל מה שביניהם.
+                </p>
+              </div>
+            </div>
+            <p id="settingsMapLayoutError" class="settingsError" hidden></p>
+            <div class="settingsMapLayoutFields">
+              <label class="settingsMapLayoutField">
+                <span>צפון — מקו רוחב זה ומעלה</span>
+                <input
+                  id="settingsNorthFromLat"
+                  type="text"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  placeholder="32.500000"
+                />
+                <small>למשל חיפה והגליל</small>
+              </label>
+              <label class="settingsMapLayoutField">
+                <span>דרום — מתחת לקו רוחב זה</span>
+                <input
+                  id="settingsSouthBelowLat"
+                  type="text"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  placeholder="31.500000"
+                />
+                <small>למשל הנגב ואילת</small>
+              </label>
+              <div class="settingsMapLayoutCenterNote">
+                <strong>מרכז</strong>
+                <span>אוטומטי — בין שני הקווים (תל אביב, ירושלים וכו׳)</span>
+              </div>
+            </div>
           </div>
         </div>
 

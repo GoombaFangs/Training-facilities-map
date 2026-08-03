@@ -7,11 +7,22 @@ export const state = {
   role: null,
   /** @type {{ id: string, name: string, facilityIds: string[] } | null} */
   facilityManager: null,
+  /** @type {string[]} */
   filterTypes: [],
+  /** @type {string[]} */
   filterAreas: [],
+  /** @type {string[]} */
+  filterStatuses: [],
+  /** @type {string[]} */
+  filterLocations: [],
+  /** @type {string[]} */
+  filterTrainingTypes: [],
+  /** @type {string[]} */
+  filterTrainingFrames: [],
+  /** @type {string[]} */
+  filterTrainingOptions: [],
   searchQuery: '',
   currentImgIndex: 0,
   isImgBig: false,
-  isFilterTypeOpen: false,
-  isFilterAreaOpen: false,
+  isFilterPanelOpen: false,
 };

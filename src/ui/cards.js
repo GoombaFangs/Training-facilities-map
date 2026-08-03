@@ -20,6 +20,17 @@ export function renderCards(container, features, onCardClick, onDataChanged) {
   container.innerHTML = '';
   const admin = isAdmin();
 
+  if (!features.length) {
+    const empty = document.createElement('div');
+    empty.className = 'cardsEmpty';
+    empty.innerHTML = `
+      <p class="cardsEmptyTitle">לא נמצאו מתקנים</p>
+      <p class="cardsEmptyHint">נסו לשנות את החיפוש או לנקות את הסינון</p>
+    `;
+    container.appendChild(empty);
+    return;
+  }
+
   features.forEach((feature) => {
     const props = feature.properties;
     const card = document.createElement('div');

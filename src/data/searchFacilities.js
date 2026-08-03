@@ -1,5 +1,5 @@
 /**
- * Filter features by search query (name, location, unit).
+ * Filter features by free-text search across facility fields.
  *
  * @param {GeoJSON.Feature[]} features
  * @param {string} query
@@ -10,13 +10,27 @@ export function searchFacilities(features, query) {
   if (!q) return features;
 
   return features.filter((feature) => {
-    const p = feature.properties;
+    const p = feature.properties ?? {};
+    const nested = p.TypesOfFacilities ?? [];
+
     const haystack = [
       p.nameOfFacility,
       p.locationOfFacility,
       p.unitOwningTheFacility,
       p.areaInTheCountry,
-      ...(p.TypesOfFacilities ?? []).map((t) => t.typeOfFacility),
+      p.statusOfFacility,
+      p.phoneOfFacility,
+      p.contactNameOfFacility,
+      p.contactRoleOfFacility,
+      ...nested.flatMap((t) => [
+        t.typeOfFacility,
+        t.specificTypeOfFacility,
+        t.trainingFrame,
+        t.comments,
+        ...(Array.isArray(t.trainingOptions)
+          ? t.trainingOptions
+          : String(t.trainingOptions ?? '').split(',')),
+      ]),
     ]
       .filter(Boolean)
       .join(' ')
