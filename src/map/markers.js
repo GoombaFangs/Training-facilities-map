@@ -11,8 +11,9 @@ const facilityIcon = L.divIcon({
   `,
   iconSize: [40, 56],
   iconAnchor: [20, 56],
-  popupAnchor: [0, -50],
-  tooltipAnchor: [0, -50],
+  popupAnchor: [0, -44],
+  // Open near the pin head (above the tip at iconAnchor)
+  tooltipAnchor: [0, -44],
 });
 
 let highlightClearTimer = 0;
@@ -50,7 +51,8 @@ export function addMarkers(data, onMarkerClick, visibleNames) {
       if (name) {
         layer.bindTooltip(name, {
           direction: 'top',
-          offset: [0, -52],
+          offset: [0, -6],
+          opacity: 1,
         });
       }
 

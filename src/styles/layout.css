@@ -5,6 +5,24 @@
   z-index: 0;
 }
 
+/* Leaflet positions overlays with left/transform — keep map LTR even on RTL pages */
+.leaflet-container {
+  direction: ltr;
+}
+
+.leaflet-tooltip {
+  direction: rtl;
+  text-align: center;
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #d8dee5;
+  box-shadow: 0 4px 14px rgba(15, 28, 40, 0.12);
+  color: var(--color-text);
+}
+
 .leaflet-control-zoom {
   border-style: none !important;
 }
