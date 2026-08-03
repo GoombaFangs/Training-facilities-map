@@ -157,6 +157,22 @@
   word-break: break-word;
 }
 
+.contactDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.contactPersonLine {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-weight: 550;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
 .contactPhoneLink {
   color: var(--color-primary);
   text-decoration: none;

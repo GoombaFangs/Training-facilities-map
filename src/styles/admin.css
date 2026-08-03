@@ -424,6 +424,25 @@
   grid-column: 1 / -1;
 }
 
+.contactBlock {
+  gap: 0.55rem;
+}
+
+.contactBlockTitle {
+  font-size: 0.88rem;
+  color: var(--color-muted-strong);
+}
+
+.contactFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem 0.85rem;
+}
+
+.contactFields .wizardField {
+  min-width: 0;
+}
+
 .wizardField input,
 .wizardField select,
 .wizardField textarea {
@@ -841,7 +860,8 @@
   }
 
   .wizardGrid,
-  .locationCard {
+  .locationCard,
+  .contactFields {
     grid-template-columns: 1fr;
   }
 

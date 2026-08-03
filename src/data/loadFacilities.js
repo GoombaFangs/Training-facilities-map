@@ -98,6 +98,8 @@ export function buildFeatureFromForm(values, existingId) {
       unitOwningTheFacility: values.unitOwningTheFacility.trim(),
       statusOfFacility: values.statusOfFacility || 'פעיל',
       phoneOfFacility: String(values.phoneOfFacility || '').trim(),
+      contactNameOfFacility: String(values.contactNameOfFacility || '').trim(),
+      contactRoleOfFacility: String(values.contactRoleOfFacility || '').trim(),
       locationOfFacility: values.locationOfFacility.trim(),
       areaInTheCountry: values.areaInTheCountry,
       TypesOfFacilities: [

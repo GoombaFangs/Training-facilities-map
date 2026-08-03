@@ -2,19 +2,26 @@ import L from 'leaflet';
 import { state } from '../state.js';
 import { closeMarkerActionMenu } from '../ui/markerActions.js';
 
-const facilityIcon = L.divIcon({
-  className: 'facility-marker',
-  html: `
-    <div class="facility-marker-pin">
-      <span class="facility-marker-dot"></span>
-    </div>
-  `,
-  iconSize: [40, 56],
-  iconAnchor: [20, 56],
-  popupAnchor: [0, -44],
-  // Open near the pin head (above the tip at iconAnchor)
-  tooltipAnchor: [0, -44],
-});
+/**
+ * @param {string} [status]
+ */
+function getFacilityIcon(status) {
+  const isActive = !status || status === 'פעיל';
+  const toneClass = isActive ? 'is-active' : 'is-gray';
+
+  return L.divIcon({
+    className: `facility-marker ${toneClass}`,
+    html: `
+      <div class="facility-marker-pin">
+        <span class="facility-marker-dot"></span>
+      </div>
+    `,
+    iconSize: [40, 56],
+    iconAnchor: [20, 56],
+    popupAnchor: [0, -44],
+    tooltipAnchor: [0, -44],
+  });
+}
 
 let highlightClearTimer = 0;
 let highlightFlyTimer = 0;
@@ -43,8 +50,10 @@ export function addMarkers(data, onMarkerClick, visibleNames) {
       if (!hasFilters) return true;
       return visibleNames.has(feature.properties.nameOfFacility);
     },
-    pointToLayer(_feature, latlng) {
-      return L.marker(latlng, { icon: facilityIcon });
+    pointToLayer(feature, latlng) {
+      return L.marker(latlng, {
+        icon: getFacilityIcon(feature.properties?.statusOfFacility),
+      });
     },
     onEachFeature(feature, layer) {
       const name = feature.properties?.nameOfFacility;

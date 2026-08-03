@@ -71,9 +71,22 @@ function displayInfo() {
   statusEl.textContent = statusMeta?.label ?? props.statusOfFacility ?? 'פעיל';
   statusEl.className = `statusBadge ${statusMeta?.cssClass ?? 'statusActive'}`;
 
+  const contactName = String(props.contactNameOfFacility ?? '').trim();
+  const contactRole = String(props.contactRoleOfFacility ?? '').trim();
   const phone = String(props.phoneOfFacility ?? '').trim();
+  const personLine = document.getElementById('contactPersonLine');
   const phoneLink = document.getElementById('contactPhoneLink');
   const phoneEmpty = document.getElementById('contactPhoneEmpty');
+
+  const personParts = [contactName, contactRole].filter(Boolean);
+  if (personParts.length) {
+    personLine.hidden = false;
+    personLine.textContent = personParts.join(' · ');
+  } else {
+    personLine.hidden = true;
+    personLine.textContent = '';
+  }
+
   if (phone) {
     phoneLink.hidden = false;
     phoneEmpty.hidden = true;
@@ -83,6 +96,10 @@ function displayInfo() {
     phoneLink.hidden = true;
     phoneLink.removeAttribute('href');
     phoneLink.textContent = '';
+    phoneEmpty.hidden = personParts.length > 0;
+  }
+
+  if (!phone && !personParts.length) {
     phoneEmpty.hidden = false;
   }
 
@@ -110,7 +127,7 @@ function renderFacilitySections(types) {
     section.appendChild(heading);
 
     section.appendChild(
-      createField('סוג המתקן', facilityType.specificTypeOfFacility),
+      createField('סוג אימון', facilityType.specificTypeOfFacility),
     );
     section.appendChild(
       createField('מסגרת מתאמנת', facilityType.trainingFrame),

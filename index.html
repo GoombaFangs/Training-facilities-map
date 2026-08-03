@@ -128,10 +128,13 @@
                 <span class="popUpMetaLabel">סטטוס</span>
                 <span id="statusText" class="statusBadge"></span>
               </div>
-              <div class="popUpMetaItem">
+              <div class="popUpMetaItem popUpMetaItemWide">
                 <span class="popUpMetaLabel">יצירת קשר</span>
-                <a id="contactPhoneLink" class="contactPhoneLink" href="#"></a>
-                <span id="contactPhoneEmpty" class="contactPhoneEmpty" hidden>לא צוין טלפון</span>
+                <div id="contactDetails" class="contactDetails">
+                  <p id="contactPersonLine" class="contactPersonLine" hidden></p>
+                  <a id="contactPhoneLink" class="contactPhoneLink" href="#"></a>
+                  <span id="contactPhoneEmpty" class="contactPhoneEmpty" hidden>לא צוין איש קשר</span>
+                </div>
               </div>
             </div>
             <div id="facilitySections" class="facilitySections"></div>
@@ -196,15 +199,29 @@
                 <span>יחידה בעלת המתקן</span>
                 <input id="formUnit" type="text" placeholder="שם היחידה" />
               </label>
-              <label class="wizardField wizardFieldFull">
-                <span>יצירת קשר עם המתקן (טלפון)</span>
-                <input
-                  id="formPhone"
-                  type="tel"
-                  inputmode="tel"
-                  placeholder="לדוגמה: 03-1234567"
-                />
-              </label>
+              <div class="wizardField wizardFieldFull contactBlock">
+                <span class="contactBlockTitle">יצירת קשר עם המתקן</span>
+                <div class="contactFields">
+                  <label class="wizardField">
+                    <span>שם</span>
+                    <input id="formContactName" type="text" placeholder="שם איש הקשר" required />
+                  </label>
+                  <label class="wizardField">
+                    <span>תפקיד</span>
+                    <input id="formContactRole" type="text" placeholder="תפקיד" required />
+                  </label>
+                  <label class="wizardField">
+                    <span>טלפון</span>
+                    <input
+                      id="formPhone"
+                      type="tel"
+                      inputmode="tel"
+                      placeholder="לדוגמה: 03-1234567"
+                      required
+                    />
+                  </label>
+                </div>
+              </div>
               <div class="wizardField">
                 <span>סטטוס</span>
                 <select id="formStatus"></select>
@@ -236,14 +253,14 @@
                 />
               </div>
               <div class="wizardField">
-                <span>סוג ספציפי</span>
+                <span>סוג אימון</span>
                 <select id="formSpecificType" data-other-for="formSpecificOther"></select>
                 <input
                   id="formSpecificOther"
                   class="otherInput"
                   type="text"
                   hidden
-                  placeholder="הזינו סוג ספציפי אחר"
+                  placeholder="הזינו סוג אימון אחר"
                 />
               </div>
               <div class="wizardField">

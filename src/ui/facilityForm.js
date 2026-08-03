@@ -45,6 +45,8 @@ let uploadedImages = [];
 let saveCustomsResetTimer = 0;
 let isPinDropping = false;
 let imageUploadBound = false;
+let isClosingForm = false;
+let formCloseTimer = 0;
 
 /**
  * @param {{ onSaved: (meta?: { id: string, isNew: boolean }) => void }} options
@@ -124,6 +126,8 @@ export function openEditForm(feature) {
   document.getElementById('formName').value = props.nameOfFacility ?? '';
   document.getElementById('formUnit').value = props.unitOwningTheFacility ?? '';
   document.getElementById('formPhone').value = props.phoneOfFacility ?? '';
+  document.getElementById('formContactName').value = props.contactNameOfFacility ?? '';
+  document.getElementById('formContactRole').value = props.contactRoleOfFacility ?? '';
   document.getElementById('formStatus').value =
     props.statusOfFacility ?? FACILITY_STATUSES[0].value;
   document.getElementById('formLat').value = Number(lat).toFixed(6);
@@ -150,21 +154,64 @@ function showForm() {
   goToStep(1);
   updateLocationStatus();
   const backdrop = document.getElementById('facilityFormBackdrop');
+  window.clearTimeout(formCloseTimer);
+  isClosingForm = false;
   backdrop.hidden = false;
-  backdrop.classList.remove('is-opening');
+  backdrop.classList.remove('is-opening', 'is-closing');
   void backdrop.offsetWidth;
   backdrop.classList.add('is-opening');
   updateAdminMapHint();
   syncMapPinCursor();
 }
 
-export function closeForm() {
+/**
+ * @param {{ animate?: boolean }} [options]
+ */
+export function closeForm(options = {}) {
+  const { animate = true } = options;
+  const backdrop = document.getElementById('facilityFormBackdrop');
+  if (!backdrop || backdrop.hidden) {
+    updateAdminMapHint();
+    syncMapPinCursor();
+    return;
+  }
+  if (isClosingForm) return;
+
   stopPickOnMap();
   clearError();
   resetSaveCustomsButton();
-  const backdrop = document.getElementById('facilityFormBackdrop');
-  backdrop.hidden = true;
+
+  if (!animate) {
+    finishCloseForm(backdrop);
+    return;
+  }
+
+  isClosingForm = true;
   backdrop.classList.remove('is-opening');
+  backdrop.classList.add('is-closing');
+
+  const form = backdrop.querySelector('.facilityForm');
+  const finish = (event) => {
+    if (event && event.target !== form) return;
+    form?.removeEventListener('animationend', finish);
+    window.clearTimeout(formCloseTimer);
+    finishCloseForm(backdrop);
+  };
+
+  form?.addEventListener('animationend', finish);
+  window.clearTimeout(formCloseTimer);
+  formCloseTimer = window.setTimeout(() => finish(), 380);
+}
+
+/**
+ * @param {HTMLElement} backdrop
+ */
+function finishCloseForm(backdrop) {
+  isClosingForm = false;
+  window.clearTimeout(formCloseTimer);
+  formCloseTimer = 0;
+  backdrop.hidden = true;
+  backdrop.classList.remove('is-opening', 'is-closing');
   updateAdminMapHint();
   syncMapPinCursor();
 }
@@ -255,6 +302,8 @@ function refreshOptionListsPreservingValues() {
     name: document.getElementById('formName').value,
     unit: document.getElementById('formUnit').value,
     phone: document.getElementById('formPhone').value,
+    contactName: document.getElementById('formContactName').value,
+    contactRole: document.getElementById('formContactRole').value,
     comments: document.getElementById('formComments').value,
     lat: document.getElementById('formLat').value,
     lng: document.getElementById('formLng').value,
@@ -265,6 +314,8 @@ function refreshOptionListsPreservingValues() {
   document.getElementById('formName').value = snapshot.name;
   document.getElementById('formUnit').value = snapshot.unit;
   document.getElementById('formPhone').value = snapshot.phone;
+  document.getElementById('formContactName').value = snapshot.contactName;
+  document.getElementById('formContactRole').value = snapshot.contactRole;
   document.getElementById('formComments').value = snapshot.comments;
   document.getElementById('formLat').value = snapshot.lat;
   document.getElementById('formLng').value = snapshot.lng;
@@ -654,6 +705,17 @@ function validateStep(step) {
       return false;
     }
 
+    const contactName = document.getElementById('formContactName').value.trim();
+    const contactRole = document.getElementById('formContactRole').value.trim();
+    const phone = document.getElementById('formPhone').value.trim();
+    if (!contactName || !contactRole || !phone) {
+      showError('יש למלא יצירת קשר עם המתקן: שם, תפקיד וטלפון');
+      if (!contactName) document.getElementById('formContactName').focus();
+      else if (!contactRole) document.getElementById('formContactRole').focus();
+      else document.getElementById('formPhone').focus();
+      return false;
+    }
+
     const selects = [
       document.getElementById('formLocation'),
       document.getElementById('formTypeOfFacility'),
@@ -769,12 +831,12 @@ function onSaveCustomValues() {
   if (specificSelect.value === OTHER_VALUE) {
     const value = getSelectOrOtherValue(specificSelect);
     if (!value) {
-      showError('בחירת "אחר" בסוג ספציפי דורשת מילוי השדה שנפתח מתחת');
+      showError('בחירת "אחר" בסוג אימון דורשת מילוי השדה שנפתח מתחת');
       document.getElementById('formSpecificOther')?.focus();
       return;
     }
     if (!facilityType) {
-      showError('יש לבחור סוג מתקן לפני שמירת סוג ספציפי חדש');
+      showError('יש לבחור סוג מתקן לפני שמירת סוג אימון חדש');
       return;
     }
     additions.specificTypes[facilityType] = [value];
@@ -853,6 +915,8 @@ function onSubmit(event) {
     nameOfFacility: document.getElementById('formName').value,
     unitOwningTheFacility: document.getElementById('formUnit').value,
     phoneOfFacility: document.getElementById('formPhone').value,
+    contactNameOfFacility: document.getElementById('formContactName').value,
+    contactRoleOfFacility: document.getElementById('formContactRole').value,
     statusOfFacility: document.getElementById('formStatus').value,
     locationOfFacility: getSelectOrOtherValue(document.getElementById('formLocation')),
     areaInTheCountry: document.getElementById('formAreaInTheCountry').value,
@@ -911,7 +975,11 @@ function startPickOnMap() {
   hint.classList.remove('is-idle');
   hint.hidden = false;
   hint.textContent = 'בחרו מיקום במפה';
-  document.getElementById('facilityFormBackdrop').hidden = true;
+  const backdrop = document.getElementById('facilityFormBackdrop');
+  window.clearTimeout(formCloseTimer);
+  isClosingForm = false;
+  backdrop.classList.remove('is-opening', 'is-closing');
+  backdrop.hidden = true;
 
   stopPickOnMap(false);
   syncMapPinCursor();
@@ -922,11 +990,11 @@ function startPickOnMap() {
       document.getElementById('formLng').value = e.latlng.lng.toFixed(6);
       updateLocationStatus();
       stopPickOnMap();
-      const backdrop = document.getElementById('facilityFormBackdrop');
-      backdrop.hidden = false;
-      backdrop.classList.remove('is-opening');
-      void backdrop.offsetWidth;
-      backdrop.classList.add('is-opening');
+      const formBackdrop = document.getElementById('facilityFormBackdrop');
+      formBackdrop.hidden = false;
+      formBackdrop.classList.remove('is-opening', 'is-closing');
+      void formBackdrop.offsetWidth;
+      formBackdrop.classList.add('is-opening');
       goToStep(2);
       updateAdminMapHint();
       syncMapPinCursor();

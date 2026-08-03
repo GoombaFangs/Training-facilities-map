@@ -55,12 +55,15 @@ export const LOCATIONS = [
   'מתקן אימונים ארצי',
 ];
 
-/** Specific subtypes keyed by facility type value */
+/** Training type options (formerly “specific type”) — same for all facility types */
+export const TRAINING_TYPE_OPTIONS = ['אימון רטוב', 'אימון יבש'];
+
+/** @deprecated kept as alias for callers that still key by facility type */
 export const SPECIFIC_TYPES_BY_FACILITY = {
-  מטווחים: ['מטווחי חוץ', 'מטווחי פנים', 'מטווח משולב', 'מטווח טקטי'],
-  'לש"בית מכולות': ['לש"בית מכולות', 'מתחם מכולות טקטי', 'מכולות כניסה'],
-  'לש"בית עץ': ['לש"בית עץ', 'מבנה עץ טקטי', 'מתחם מבנים'],
-  'חדר ירי': ['חדר ירי מבטון', 'חדר ירי נייד', 'חדר ירי מקורה'],
+  מטווחים: TRAINING_TYPE_OPTIONS,
+  'לש"בית מכולות': TRAINING_TYPE_OPTIONS,
+  'לש"בית עץ': TRAINING_TYPE_OPTIONS,
+  'חדר ירי': TRAINING_TYPE_OPTIONS,
 };
 
 export const TRAINING_FRAMES = [
@@ -101,6 +104,6 @@ export function getAreaByValue(value) {
   return AREAS.find((a) => a.value === value) ?? null;
 }
 
-export function getSpecificTypesFor(facilityType) {
-  return SPECIFIC_TYPES_BY_FACILITY[facilityType] ?? [];
+export function getSpecificTypesFor(_facilityType) {
+  return TRAINING_TYPE_OPTIONS;
 }
