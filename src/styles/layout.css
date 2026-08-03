@@ -5,6 +5,13 @@
   z-index: 0;
 }
 
+.appShell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 /* Leaflet positions overlays with left/transform — keep map LTR even on RTL pages */
 .leaflet-container {
   direction: ltr;
@@ -31,6 +38,45 @@
 .leaflet-control-zoom-out {
   border-radius: 50px !important;
   margin: 20%;
+}
+
+/* Admin settings — gear at top-left (zoom sits bottom-left) */
+.mapSettingsBtn {
+  position: absolute;
+  top: 1.1rem;
+  left: 1.05rem;
+  z-index: 1000;
+  width: 3.1rem;
+  height: 3.1rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #222;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.mapSettingsBtn:hover {
+  background: #f4f4f4;
+  color: var(--color-primary);
+}
+
+.mapSettingsBtn:active {
+  transform: scale(0.96);
+}
+
+.mapSettingsBtn[hidden] {
+  display: none !important;
+}
+
+.mapSettingsIcon {
+  width: 1.65rem;
+  height: 1.65rem;
+  display: block;
 }
 
 .container {

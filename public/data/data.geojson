@@ -39,7 +39,7 @@
       "properties": {
         "nameOfFacility": "מתקן אימון מרכז",
         "unitOwningTheFacility": "יחידה 2",
-        "statusOfFacility": "בבניה",
+        "statusOfFacility": "בהקמה",
         "phoneOfFacility": "03-7654321",
         "locationOfFacility": "בסיס מרכז",
         "areaInTheCountry": "מרכז",
@@ -85,7 +85,7 @@
       "properties": {
         "nameOfFacility": "מתקן אימון דרום",
         "unitOwningTheFacility": "יחידה 3",
-        "statusOfFacility": "לא פעיל",
+        "statusOfFacility": "לא כשיר",
         "phoneOfFacility": "08-9876543",
         "locationOfFacility": "בסיס דרום",
         "areaInTheCountry": "דרום",

@@ -22,6 +22,7 @@ function emptyOptions() {
 }
 
 /**
+ * Legacy custom-options store (additions only). Still read when seeding catalogs.
  * @returns {CustomOptions}
  */
 export function loadCustomOptions() {
@@ -65,54 +66,6 @@ export function mergeUnique(base, extra) {
   }
 
   return result;
-}
-
-/**
- * @param {Partial<CustomOptions>} additions
- * @returns {{ saved: CustomOptions, addedCount: number }}
- */
-export function addCustomValues(additions) {
-  const current = loadCustomOptions();
-  let addedCount = 0;
-
-  const beforeLoc = current.locations.length;
-  current.locations = mergeUnique(current.locations, additions.locations ?? []);
-  addedCount += current.locations.length - beforeLoc;
-
-  const beforeTypes = current.facilityTypes.length;
-  current.facilityTypes = mergeUnique(
-    current.facilityTypes,
-    additions.facilityTypes ?? [],
-  );
-  addedCount += current.facilityTypes.length - beforeTypes;
-
-  const beforeFrames = current.trainingFrames.length;
-  current.trainingFrames = mergeUnique(
-    current.trainingFrames,
-    additions.trainingFrames ?? [],
-  );
-  addedCount += current.trainingFrames.length - beforeFrames;
-
-  const beforeOpts = current.trainingOptions.length;
-  current.trainingOptions = mergeUnique(
-    current.trainingOptions,
-    additions.trainingOptions ?? [],
-  );
-  addedCount += current.trainingOptions.length - beforeOpts;
-
-  for (const [key, values] of Object.entries(additions.specificTypes ?? {})) {
-    const facilityKey = String(key).trim();
-    if (!facilityKey) continue;
-    const before = (current.specificTypes[facilityKey] ?? []).length;
-    current.specificTypes[facilityKey] = mergeUnique(
-      current.specificTypes[facilityKey] ?? [],
-      values ?? [],
-    );
-    addedCount += current.specificTypes[facilityKey].length - before;
-  }
-
-  saveCustomOptions(current);
-  return { saved: current, addedCount };
 }
 
 /**

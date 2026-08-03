@@ -1,10 +1,9 @@
-import {
-  FACILITY_TYPES,
-  AREAS,
-  getFacilityTypeByInputId,
-  getAreaByInputId,
-} from '../config/constants.js';
+import { getCatalogList, getFacilityTypeCssClass } from '../data/optionCatalogs.js';
 import { state } from '../state.js';
+
+/** @type {(() => void) | null} */
+let filtersOnChange = null;
+let filterTogglesBound = false;
 
 /**
  * @param {{
@@ -12,32 +11,91 @@ import { state } from '../state.js';
  * }} options
  */
 export function initFilters({ onChange }) {
+  filtersOnChange = onChange;
   renderFilterOptions();
-  bindFilterToggles();
+  if (!filterTogglesBound) {
+    bindFilterToggles();
+    filterTogglesBound = true;
+  }
   bindCheckboxes(onChange);
+}
+
+/** Rebuild filter checkboxes from the current option catalogs. */
+export function reloadFilters() {
+  const previousTypes = [...state.filterTypes];
+  const previousAreas = [...state.filterAreas];
+
+  document.getElementById('filterTags').innerHTML = '';
+  state.filterTypes = [];
+  state.filterAreas = [];
+
+  renderFilterOptions();
+  bindCheckboxes(filtersOnChange ?? (() => {}));
+
+  const noop = () => {};
+  previousTypes.forEach((value) => {
+    const input = document.querySelector(
+      `#filterOptionsType input[data-filter-value="${cssEscape(value)}"]`,
+    );
+    if (input instanceof HTMLInputElement) {
+      input.checked = true;
+      handleCheckboxChange(input, noop);
+    }
+  });
+  previousAreas.forEach((value) => {
+    const input = document.querySelector(
+      `#filterOptionsArea input[data-filter-value="${cssEscape(value)}"]`,
+    );
+    if (input instanceof HTMLInputElement) {
+      input.checked = true;
+      handleCheckboxChange(input, noop);
+    }
+  });
+
+  updateFilterTagsMargin();
 }
 
 function renderFilterOptions() {
   const typeContainer = document.getElementById('filterOptionsType');
   const areaContainer = document.getElementById('filterOptionsArea');
 
-  typeContainer.innerHTML = FACILITY_TYPES.map(
-    (t) => `
-      <span>
-        <input id="${t.inputId}" type="checkbox" data-filter-kind="type" />
-        <p>${t.label}</p>
-      </span>
-    `,
-  ).join('');
+  const types = getCatalogList('facilityTypes');
+  const areas = getCatalogList('areas');
 
-  areaContainer.innerHTML = AREAS.map(
-    (a) => `
+  typeContainer.innerHTML = types
+    .map((value, index) => {
+      const id = `filterType_${index}`;
+      const cssClass = getFacilityTypeCssClass(value);
+      return `
       <span>
-        <input id="${a.inputId}" type="checkbox" data-filter-kind="area" />
-        <p>${a.label}</p>
+        <input
+          id="${id}"
+          type="checkbox"
+          data-filter-kind="type"
+          data-filter-value="${escapeAttr(value)}"
+        />
+        <p class="${cssClass}">${escapeHtml(value)}</p>
       </span>
-    `,
-  ).join('');
+    `;
+    })
+    .join('');
+
+  areaContainer.innerHTML = areas
+    .map((value, index) => {
+      const id = `filterArea_${index}`;
+      return `
+      <span>
+        <input
+          id="${id}"
+          type="checkbox"
+          data-filter-kind="area"
+          data-filter-value="${escapeAttr(value)}"
+        />
+        <p>${escapeHtml(value)}</p>
+      </span>
+    `;
+    })
+    .join('');
 }
 
 function bindFilterToggles() {
@@ -66,9 +124,14 @@ function toggleFilterPanel(kind) {
     : '#015497';
 }
 
+/**
+ * @param {() => void} onChange
+ */
 function bindCheckboxes(onChange) {
   document
-    .querySelectorAll('#filterOptionsType input[type="checkbox"], #filterOptionsArea input[type="checkbox"]')
+    .querySelectorAll(
+      '#filterOptionsType input[type="checkbox"], #filterOptionsArea input[type="checkbox"]',
+    )
     .forEach((input) => {
       input.addEventListener('change', (event) => {
         handleCheckboxChange(event.target, onChange);
@@ -76,22 +139,22 @@ function bindCheckboxes(onChange) {
     });
 }
 
+/**
+ * @param {HTMLInputElement} input
+ * @param {() => void} onChange
+ */
 function handleCheckboxChange(input, onChange) {
-  const typeMeta = getFacilityTypeByInputId(input.id);
-  const areaMeta = getAreaByInputId(input.id);
+  const kind = input.dataset.filterKind;
+  const value = input.dataset.filterValue ?? '';
+  if (!value) return;
 
   if (input.checked) {
-    if (typeMeta) {
-      if (!state.filterTypes.includes(typeMeta.value)) {
-        state.filterTypes.push(typeMeta.value);
-      }
-      addFilterTag(input.id, typeMeta.label, onChange);
-    } else if (areaMeta) {
-      if (!state.filterAreas.includes(areaMeta.value)) {
-        state.filterAreas.push(areaMeta.value);
-      }
-      addFilterTag(input.id, areaMeta.label, onChange);
+    if (kind === 'type') {
+      if (!state.filterTypes.includes(value)) state.filterTypes.push(value);
+    } else if (kind === 'area') {
+      if (!state.filterAreas.includes(value)) state.filterAreas.push(value);
     }
+    addFilterTag(input.id, value, kind, onChange);
   } else {
     removeFilterTag(input.id, onChange);
   }
@@ -99,14 +162,22 @@ function handleCheckboxChange(input, onChange) {
   onChange();
 }
 
-function addFilterTag(inputId, label, onChange) {
-  const tagId = `${inputId.slice(0, -5)}Tag`;
+/**
+ * @param {string} inputId
+ * @param {string} label
+ * @param {string} kind
+ * @param {() => void} onChange
+ */
+function addFilterTag(inputId, label, kind, onChange) {
+  const tagId = `${inputId}Tag`;
   if (document.getElementById(tagId)) return;
 
   const tags = document.getElementById('filterTags');
   const tag = document.createElement('span');
   tag.className = 'filterTag';
   tag.id = tagId;
+  tag.dataset.filterKind = kind;
+  tag.dataset.filterValue = label;
 
   const close = document.createElement('p');
   close.className = 'tagClose';
@@ -126,20 +197,23 @@ function addFilterTag(inputId, label, onChange) {
   tags.appendChild(tag);
 }
 
+/**
+ * @param {string} inputId
+ * @param {() => void} onChange
+ */
 function removeFilterTag(inputId, onChange) {
-  const tagId = `${inputId.slice(0, -5)}Tag`;
-  document.getElementById(tagId)?.remove();
+  const tag = document.getElementById(`${inputId}Tag`);
+  const kind = tag?.dataset.filterKind;
+  const value = tag?.dataset.filterValue;
+  tag?.remove();
 
   const checkbox = document.getElementById(inputId);
   if (checkbox) checkbox.checked = false;
 
-  const typeMeta = getFacilityTypeByInputId(inputId);
-  const areaMeta = getAreaByInputId(inputId);
-
-  if (typeMeta) {
-    state.filterTypes = state.filterTypes.filter((v) => v !== typeMeta.value);
-  } else if (areaMeta) {
-    state.filterAreas = state.filterAreas.filter((v) => v !== areaMeta.value);
+  if (kind === 'type' && value) {
+    state.filterTypes = state.filterTypes.filter((v) => v !== value);
+  } else if (kind === 'area' && value) {
+    state.filterAreas = state.filterAreas.filter((v) => v !== value);
   }
 }
 
@@ -148,4 +222,33 @@ export function updateFilterTagsMargin() {
   const hasFilters =
     state.filterTypes.length > 0 || state.filterAreas.length > 0;
   tags.style.marginTop = hasFilters ? '2vh' : '0';
+}
+
+/**
+ * @param {string} value
+ */
+function escapeAttr(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+/**
+ * @param {string} value
+ */
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+/**
+ * @param {string} value
+ */
+function cssEscape(value) {
+  if (window.CSS?.escape) return CSS.escape(value);
+  return String(value).replace(/["\\]/g, '\\$&');
 }

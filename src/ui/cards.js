@@ -1,7 +1,12 @@
 import { getFacilityTypeByValue, getStatusByValue } from '../config/constants.js';
-import { isAdmin } from '../auth/roleGate.js';
+import {
+  getFacilityTypeCssClass,
+  getStatusCssClass,
+} from '../data/optionCatalogs.js';
+import { isAdmin, isManagedFacility, getActiveFacilityManager } from '../auth/roleGate.js';
 import { deleteFacility } from '../data/loadFacilities.js';
 import { state } from '../state.js';
+import { addFacilityChangeReport } from '../data/managerReports.js';
 import { openEditForm } from './facilityForm.js';
 import { closePopup } from './popup.js';
 
@@ -28,7 +33,7 @@ export function renderCards(container, features, onCardClick, onDataChanged) {
     title.textContent = props.nameOfFacility;
     titleRow.appendChild(title);
 
-    if (admin) {
+    if (admin && isManagedFacility(props.id)) {
       const actions = document.createElement('div');
       actions.className = 'cardActions';
 
@@ -62,6 +67,18 @@ export function renderCards(container, features, onCardClick, onDataChanged) {
         if (!confirm(`למחוק את המתקן "${name}"?`)) return;
         closePopup();
         deleteFacility(state.facilitiesData, props.id);
+
+        const manager = getActiveFacilityManager();
+        if (manager) {
+          addFacilityChangeReport({
+            type: 'facility_deleted',
+            managerId: manager.id,
+            managerName: manager.name,
+            facilityId: props.id,
+            facilityName: name,
+          });
+        }
+
         onDataChanged();
       });
 
@@ -85,10 +102,11 @@ export function renderCards(container, features, onCardClick, onDataChanged) {
     address.appendChild(addressText);
     card.appendChild(address);
 
-    const statusMeta = getStatusByValue(props.statusOfFacility ?? 'פעיל');
+    const statusValue = props.statusOfFacility ?? 'פעיל';
+    const statusMeta = getStatusByValue(statusValue);
     const status = document.createElement('span');
-    status.className = `statusBadge ${statusMeta?.cssClass ?? 'statusActive'}`;
-    status.textContent = statusMeta?.label ?? props.statusOfFacility ?? 'פעיל';
+    status.className = `statusBadge ${statusMeta?.cssClass ?? getStatusCssClass(statusValue)}`;
+    status.textContent = statusMeta?.label ?? statusValue;
     card.appendChild(status);
 
     const tags = document.createElement('div');
@@ -99,9 +117,9 @@ export function renderCards(container, features, onCardClick, onDataChanged) {
       tag.className = 'cardTag';
 
       const typeMeta = getFacilityTypeByValue(facilityType.typeOfFacility);
-      if (typeMeta) {
-        tag.classList.add(typeMeta.cssClass);
-      }
+      tag.classList.add(
+        typeMeta?.cssClass ?? getFacilityTypeCssClass(facilityType.typeOfFacility),
+      );
 
       const icon = document.createElement('div');
       icon.className = 'tagIcon';

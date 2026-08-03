@@ -1,16 +1,18 @@
 import L from 'leaflet';
 import { state } from '../state.js';
 import { closeMarkerActionMenu } from '../ui/markerActions.js';
+import { isManagedFacility } from '../auth/roleGate.js';
 
 /**
  * @param {string} [status]
  */
-function getFacilityIcon(status) {
+function getFacilityIcon(status, dimmed = false) {
   const isActive = !status || status === 'פעיל';
   const toneClass = isActive ? 'is-active' : 'is-gray';
+  const dimClass = dimmed ? ' is-dimmed' : '';
 
   return L.divIcon({
-    className: `facility-marker ${toneClass}`,
+    className: `facility-marker ${toneClass}${dimClass}`,
     html: `
       <div class="facility-marker-pin">
         <span class="facility-marker-dot"></span>
@@ -51,8 +53,10 @@ export function addMarkers(data, onMarkerClick, visibleNames) {
       return visibleNames.has(feature.properties.nameOfFacility);
     },
     pointToLayer(feature, latlng) {
+      const dimmed = !isManagedFacility(feature.properties?.id);
       return L.marker(latlng, {
-        icon: getFacilityIcon(feature.properties?.statusOfFacility),
+        icon: getFacilityIcon(feature.properties?.statusOfFacility, dimmed),
+        opacity: dimmed ? 0.3 : 1,
       });
     },
     onEachFeature(feature, layer) {

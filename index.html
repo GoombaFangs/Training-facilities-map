@@ -10,6 +10,19 @@
   <body>
     <div id="roleGate" class="roleGate">
       <div class="roleGateCard">
+        <button
+          type="button"
+          id="roleGateBack"
+          class="roleGateBackBtn"
+          hidden
+          aria-label="חזרה"
+          title="חזרה"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+            <path d="M8.7 5.3a1 1 0 0 1 1.4 0l6 6a1 1 0 0 1 0 1.4l-6 6a1 1 0 1 1-1.4-1.4L13.58 12 8.7 7.12a1 1 0 0 1 0-1.42Z" />
+          </svg>
+        </button>
+
         <div id="roleGateIntro" class="roleGateIntro">
           <img class="roleGateLogo" src="/assets/HebetLogo.png" alt="לוגו הבט" />
           <h1>מאגר מתקני אימון ארצי</h1>
@@ -23,24 +36,118 @@
             </button>
           </div>
         </div>
+
         <div id="adminPasswordPanel" class="adminPasswordPanel" hidden>
           <h2 class="adminPasswordTitle">כניסת מנהל</h2>
           <label for="adminPassword">סיסמת מנהל</label>
-          <input
-            id="adminPassword"
-            type="password"
-            autocomplete="current-password"
-            placeholder="הזינו סיסמה"
-          />
+          <div class="passwordField">
+            <input
+              id="adminPassword"
+              type="password"
+              autocomplete="current-password"
+              placeholder="הזינו סיסמה"
+            />
+            <button
+              type="button"
+              class="passwordPeekBtn"
+              data-peek-for="adminPassword"
+              aria-label="הצג סיסמה בלחיצה ארוכה"
+              title="לחיצה ארוכה להצגת הסיסמה"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                <path
+                  d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
+                />
+              </svg>
+            </button>
+          </div>
           <p id="adminPasswordError" class="adminPasswordError" hidden>
             סיסמה שגויה
           </p>
-          <div class="adminPasswordActions">
-            <button type="button" id="adminPasswordSubmit" class="roleBtn roleBtnAdmin">
-              כניסה
+          <div class="adminPasswordActions adminPasswordActionsStack">
+            <div class="adminPasswordActionsRow">
+              <button type="button" id="adminPasswordSubmit" class="roleBtn roleBtnAdmin">
+                כניסה
+              </button>
+              <button type="button" id="forgotPasswordOpen" class="roleBtn roleBtnGhost">
+                שכחתי סיסמה
+              </button>
+            </div>
+            <button type="button" id="managerRequestOpen" class="roleBtn roleBtnRequest">
+              בקשה למנהל
             </button>
-            <button type="button" id="adminPasswordCancel" class="roleBtn roleBtnGhost">
-              הקודם
+          </div>
+        </div>
+
+        <div id="forgotPasswordPanel" class="forgotPasswordPanel" hidden>
+          <h2 class="adminPasswordTitle">שחזור סיסמה</h2>
+          <p class="forgotPasswordHint">
+            הזינו את השם כפי שמופיע במערכת ומספר טלפון — ההודעה תישלח למנהל הראשי.
+          </p>
+          <label for="forgotPasswordName">שם</label>
+          <input
+            id="forgotPasswordName"
+            type="text"
+            autocomplete="name"
+            placeholder="שם מנהל המתקן"
+          />
+          <label for="forgotPasswordPhone">מספר טלפון</label>
+          <input
+            id="forgotPasswordPhone"
+            type="tel"
+            autocomplete="tel"
+            placeholder="05X-XXXXXXX"
+          />
+          <p id="forgotPasswordError" class="adminPasswordError" hidden></p>
+          <p id="forgotPasswordSuccess" class="forgotPasswordSuccess" hidden></p>
+          <div class="adminPasswordActions">
+            <button type="button" id="forgotPasswordSubmit" class="roleBtn roleBtnAdmin">
+              שליחה
+            </button>
+          </div>
+        </div>
+
+        <div id="managerRequestPanel" class="managerRequestPanel" hidden>
+          <h2 class="adminPasswordTitle">בקשה למנהל</h2>
+          <p class="forgotPasswordHint">
+            מלאו שם וסיסמה ובחרו מתקנים לניהול. הבקשה תישלח לאישור המנהל הראשי.
+          </p>
+          <label for="managerRequestName">שם</label>
+          <input
+            id="managerRequestName"
+            type="text"
+            autocomplete="name"
+            placeholder="השם שלכם"
+          />
+          <label for="managerRequestPassword">סיסמה לבחירה</label>
+          <div class="passwordField">
+            <input
+              id="managerRequestPassword"
+              type="password"
+              autocomplete="new-password"
+              placeholder="סיסמה לכניסה לאחר אישור"
+            />
+            <button
+              type="button"
+              class="passwordPeekBtn"
+              data-peek-for="managerRequestPassword"
+              aria-label="הצג סיסמה בלחיצה ארוכה"
+              title="לחיצה ארוכה להצגת הסיסמה"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                <path
+                  d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
+                />
+              </svg>
+            </button>
+          </div>
+          <span class="managerRequestFacilitiesLabel">מתקנים לניהול</span>
+          <div id="managerRequestFacilities" class="managerRequestFacilities"></div>
+          <p id="managerRequestError" class="adminPasswordError" hidden></p>
+          <p id="managerRequestSuccess" class="forgotPasswordSuccess" hidden></p>
+          <div class="adminPasswordActions">
+            <button type="button" id="managerRequestSubmit" class="roleBtn roleBtnAdmin">
+              שליחת בקשה
             </button>
           </div>
         </div>
@@ -49,6 +156,36 @@
 
     <div id="appShell" class="appShell">
       <div id="map" class="map"></div>
+      <button
+        type="button"
+        id="settingsBtn"
+        class="mapSettingsBtn"
+        hidden
+        aria-label="הגדרות"
+        title="הגדרות"
+      >
+        <svg class="mapSettingsIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+          <path
+            d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.77 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.4.31.6.22l2.39-.96c.5.39 1.04.71 1.63.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.55 1.63-.94l2.39.96c.23.09.49 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"
+          />
+        </svg>
+      </button>
+      <button
+        type="button"
+        id="messagesBtn"
+        class="mapMessagesBtn"
+        hidden
+        aria-label="הודעות"
+        title="הודעות"
+      >
+        <svg class="mapMessagesIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+          <path
+            d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"
+          />
+        </svg>
+        <span id="messagesNotifyDot" class="messagesNotifyDot" hidden aria-hidden="true"></span>
+        <span id="messagesNotifyCount" class="messagesNotifyCount" hidden></span>
+      </button>
       <div id="mapPickHint" class="mapPickHint" hidden>
         לחצו על המפה כדי לבחור מיקום
       </div>
@@ -367,6 +504,115 @@
           </button>
         </footer>
       </form>
+    </div>
+
+    <div id="settingsBackdrop" class="settingsBackdrop" hidden>
+      <div class="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <header class="settingsHeader">
+          <div>
+            <p class="settingsEyebrow">ניהול מערכת</p>
+            <h2 id="settingsTitle">הגדרות</h2>
+          </div>
+          <button type="button" id="settingsClose" class="wizardClose" aria-label="סגור">
+            &times;
+          </button>
+        </header>
+
+        <div class="settingsTabs" role="tablist" aria-label="קטגוריות הגדרות">
+          <button
+            type="button"
+            class="settingsTab is-active"
+            role="tab"
+            id="settingsTabOptions"
+            data-settings-tab="options"
+            aria-selected="true"
+          >
+            ניהול אפשרויות
+          </button>
+          <button
+            type="button"
+            class="settingsTab"
+            role="tab"
+            id="settingsTabUsers"
+            data-settings-tab="users"
+            aria-selected="false"
+          >
+            ניהול משתמשים
+          </button>
+        </div>
+
+        <div
+          id="settingsOptionsSection"
+          class="settingsSection"
+          role="tabpanel"
+          aria-labelledby="settingsTabOptions"
+        >
+          <div class="settingsBody">
+            <nav id="settingsNav" class="settingsNav" aria-label="רשימות אפשרויות"></nav>
+            <div class="settingsMain">
+              <div class="settingsMainTop">
+                <h3 id="settingsListTitle" class="settingsListTitle"></h3>
+                <button type="button" id="settingsAddItem" class="settingsAddBtn">
+                  הוסף אפשרות
+                </button>
+              </div>
+              <p id="settingsError" class="settingsError" hidden></p>
+              <ul id="settingsList" class="settingsList"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="settingsUsersSection"
+          class="settingsSection"
+          role="tabpanel"
+          aria-labelledby="settingsTabUsers"
+          hidden
+        >
+          <div class="settingsUsersMain">
+            <div class="settingsMainTop">
+              <div>
+                <h3 class="settingsListTitle">מנהלי מתקן</h3>
+                <p class="settingsUsersHint">
+                  צרו מנהל עם שם וסיסמה, ובחרו אילו מתקנים הוא מנהל. בכניסה עם הסיסמה יוצג האות הראשונה של השם.
+                </p>
+              </div>
+              <button type="button" id="settingsAddUser" class="settingsAddBtn">
+                הוסף מנהל
+              </button>
+            </div>
+            <p id="settingsUsersError" class="settingsError" hidden></p>
+            <ul id="settingsUsersList" class="settingsUsersList"></ul>
+          </div>
+        </div>
+
+        <footer class="settingsFooter">
+          <button type="button" id="settingsCancel" class="wizardBtn wizardBtnGhost">
+            ביטול
+          </button>
+          <button type="button" id="settingsSave" class="wizardBtn wizardBtnPrimary">
+            שמור
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <div id="messagesBackdrop" class="messagesBackdrop" hidden>
+      <div class="messagesPanel" role="dialog" aria-modal="true" aria-labelledby="messagesTitle">
+        <header class="messagesHeader">
+          <div>
+            <p class="messagesEyebrow">תיבת דואר</p>
+            <h2 id="messagesTitle">הודעות</h2>
+          </div>
+          <button type="button" id="messagesClose" class="wizardClose" aria-label="סגור">
+            &times;
+          </button>
+        </header>
+        <p class="messagesHint">
+          בקשות, שחזורי סיסמה ושינויים ממנהלי מתקן מופיעים כאן.
+        </p>
+        <ul id="messagesList" class="messagesList"></ul>
+      </div>
     </div>
 
     <script type="module" src="/src/main.js"></script>

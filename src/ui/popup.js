@@ -1,5 +1,6 @@
 import { state } from '../state.js';
 import { getFacilityTypeByValue, getStatusByValue } from '../config/constants.js';
+import { getStatusCssClass } from '../data/optionCatalogs.js';
 import { setupGallery, resetGallery } from './gallery.js';
 
 let activeFeature = null;
@@ -67,9 +68,10 @@ function displayInfo() {
   document.getElementById('unitText').textContent = props.unitOwningTheFacility;
 
   const statusEl = document.getElementById('statusText');
-  const statusMeta = getStatusByValue(props.statusOfFacility ?? 'פעיל');
-  statusEl.textContent = statusMeta?.label ?? props.statusOfFacility ?? 'פעיל';
-  statusEl.className = `statusBadge ${statusMeta?.cssClass ?? 'statusActive'}`;
+  const statusValue = props.statusOfFacility ?? 'פעיל';
+  const statusMeta = getStatusByValue(statusValue);
+  statusEl.textContent = statusMeta?.label ?? statusValue;
+  statusEl.className = `statusBadge ${statusMeta?.cssClass ?? getStatusCssClass(statusValue)}`;
 
   const contactName = String(props.contactNameOfFacility ?? '').trim();
   const contactRole = String(props.contactRoleOfFacility ?? '').trim();

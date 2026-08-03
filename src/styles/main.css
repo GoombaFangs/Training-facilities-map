@@ -5,6 +5,8 @@
 @import './popup.css';
 @import './auth.css';
 @import './admin.css';
+@import './settings.css';
+@import './messages.css';
 @import './markerActions.css';
 @import './intro.css';
 @import './motion.css';

@@ -18,6 +18,8 @@
 .appShell:not(.is-ready) .adminToolbar,
 .appShell:not(.is-ready) .cards .card,
 .appShell:not(.is-ready) .leaflet-control-zoom,
+.appShell:not(.is-ready) .mapSettingsBtn,
+.appShell:not(.is-ready) .mapMessagesBtn,
 .appShell:not(.is-ready) .sidebarToggle {
   opacity: 0;
   transform: translateY(16px);
@@ -69,6 +71,13 @@
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.45s ease 0.35s, transform 0.55s ease 0.35s;
+}
+
+.appShell.is-ready .mapSettingsBtn,
+.appShell.is-ready .mapMessagesBtn {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.45s ease 0.42s, transform 0.55s ease 0.42s, background 0.15s ease, color 0.15s ease;
 }
 
 @keyframes sidebarCardIn {

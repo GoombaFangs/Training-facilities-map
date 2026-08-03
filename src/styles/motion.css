@@ -175,6 +175,16 @@
   transform: translateY(-1px) scale(1.01);
 }
 
+.card.is-dimmed {
+  opacity: 0.3;
+}
+
+.card.is-dimmed:hover,
+.card.is-dimmed:active {
+  transform: none;
+  box-shadow: var(--card-shadow, 0 4px 14px rgba(15, 28, 40, 0.08));
+}
+
 .cardTag {
   transition: transform 0.2s var(--ease-spring);
 }
@@ -312,6 +322,10 @@
 
 .facility-marker.is-gray:hover .facility-marker-pin::before {
   background: linear-gradient(165deg, #b8c0c8 0%, #9aa3ac 52%, #7f8892 100%);
+}
+
+.facility-marker.is-dimmed {
+  filter: grayscale(0.15);
 }
 
 /* Newly created facility — spotlight on the map */

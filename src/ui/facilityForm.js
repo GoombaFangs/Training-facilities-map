@@ -1,25 +1,21 @@
 import L from 'leaflet';
 import {
-  FACILITY_TYPES,
-  AREAS,
-  LOCATIONS,
-  TRAINING_FRAMES,
-  TRAINING_OPTIONS,
   FACILITY_STATUSES,
-  getSpecificTypesFor,
+  AREAS,
 } from '../config/constants.js';
 import {
-  loadCustomOptions,
-  addCustomValues,
-  mergeUnique,
-} from '../data/customOptions.js';
+  getCatalogList,
+  appendToOptionCatalogs,
+} from '../data/optionCatalogs.js';
 import { state } from '../state.js';
-import { isAdmin } from '../auth/roleGate.js';
+import { isAdmin, isManagedFacility, getActiveFacilityManager } from '../auth/roleGate.js';
 import {
   addFacility,
   updateFacility,
   buildFeatureFromForm,
 } from '../data/loadFacilities.js';
+import { addFacilityChangeReport } from '../data/managerReports.js';
+import { describeFacilityChanges } from '../data/facilityDiff.js';
 import { closePopup } from './popup.js';
 import {
   hasOpenMarkerMenu,
@@ -113,6 +109,8 @@ export function openCreateForm(coords = null) {
  * @param {GeoJSON.Feature} feature
  */
 export function openEditForm(feature) {
+  if (!isManagedFacility(feature?.properties?.id)) return;
+
   const props = feature.properties;
   const type = props.TypesOfFacilities?.[0] ?? {};
   const [lng, lat] = feature.geometry.coordinates;
@@ -129,14 +127,14 @@ export function openEditForm(feature) {
   document.getElementById('formContactName').value = props.contactNameOfFacility ?? '';
   document.getElementById('formContactRole').value = props.contactRoleOfFacility ?? '';
   document.getElementById('formStatus').value =
-    props.statusOfFacility ?? FACILITY_STATUSES[0].value;
+    props.statusOfFacility ?? getMergedStatuses()[0] ?? FACILITY_STATUSES[0].value;
   document.getElementById('formLat').value = Number(lat).toFixed(6);
   document.getElementById('formLng').value = Number(lng).toFixed(6);
   document.getElementById('formComments').value = type.comments ?? '';
 
   setSelectOrOther(document.getElementById('formLocation'), props.locationOfFacility);
   document.getElementById('formAreaInTheCountry').value =
-    props.areaInTheCountry ?? AREAS[0].value;
+    props.areaInTheCountry ?? getMergedAreas()[0] ?? AREAS[0].value;
   setSelectOrOther(document.getElementById('formTypeOfFacility'), type.typeOfFacility);
   refreshSpecificTypes(type.specificTypeOfFacility);
   setSelectOrOther(document.getElementById('formTrainingFrame'), type.trainingFrame);
@@ -235,30 +233,34 @@ function resetFormFields() {
 }
 
 function getMergedLocations() {
-  return mergeUnique(LOCATIONS, loadCustomOptions().locations);
+  return getCatalogList('locations');
 }
 
 function getMergedFacilityTypes() {
-  return mergeUnique(
-    FACILITY_TYPES.map((t) => t.value),
-    loadCustomOptions().facilityTypes,
-  );
+  return getCatalogList('facilityTypes');
 }
 
 function getMergedTrainingFrames() {
-  return mergeUnique(TRAINING_FRAMES, loadCustomOptions().trainingFrames);
+  return getCatalogList('trainingFrames');
 }
 
 function getMergedTrainingOptions() {
-  return mergeUnique(TRAINING_OPTIONS, loadCustomOptions().trainingOptions);
+  return getCatalogList('trainingOptions');
+}
+
+function getMergedAreas() {
+  return getCatalogList('areas');
+}
+
+function getMergedStatuses() {
+  return getCatalogList('statuses');
 }
 
 /**
- * @param {string} facilityType
+ * @param {string} [_facilityType]
  */
-function getMergedSpecificTypes(facilityType) {
-  const custom = loadCustomOptions().specificTypes[facilityType] ?? [];
-  return mergeUnique(getSpecificTypesFor(facilityType), custom);
+function getMergedSpecificTypes(_facilityType) {
+  return getCatalogList('trainingTypes');
 }
 
 function refillAllOptionLists() {
@@ -269,12 +271,12 @@ function refillAllOptionLists() {
   );
   fillSelect(
     document.getElementById('formAreaInTheCountry'),
-    AREAS.map((a) => a.value),
+    getMergedAreas(),
     false,
   );
   fillSelect(
     document.getElementById('formStatus'),
-    FACILITY_STATUSES.map((s) => s.value),
+    getMergedStatuses(),
     false,
   );
   fillSelect(document.getElementById('formLocation'), getMergedLocations(), true);
@@ -285,6 +287,16 @@ function refillAllOptionLists() {
   );
   renderTrainingOptionChips();
   refreshSpecificTypes();
+}
+
+/** Refresh form option lists from catalogs (used by settings panel). */
+export function refreshFacilityFormOptions() {
+  const backdrop = document.getElementById('facilityFormBackdrop');
+  if (backdrop && !backdrop.hidden) {
+    refreshOptionListsPreservingValues();
+  } else {
+    refillAllOptionLists();
+  }
 }
 
 /**
@@ -869,7 +881,7 @@ function onSaveCustomValues() {
     return;
   }
 
-  const { addedCount } = addCustomValues(additions);
+  const { addedCount } = appendToOptionCatalogs(additions);
   refreshOptionListsPreservingValues();
 
   if (addedCount === 0) {
@@ -931,6 +943,8 @@ function onSubmit(event) {
   };
 
   let feature = buildFeatureFromForm(values, editingId);
+  /** @type {string[]} */
+  let updateChanges = [];
 
   try {
     if (editingId) {
@@ -944,6 +958,7 @@ function onSubmit(event) {
           ...rest,
         ];
       }
+      updateChanges = describeFacilityChanges(existing, feature);
       updateFacility(state.facilitiesData, editingId, feature);
     } else {
       addFacility(state.facilitiesData, feature);
@@ -961,10 +976,24 @@ function onSubmit(event) {
     throw error;
   }
 
+  const wasNew = !editingId;
   closeForm();
+
+  const manager = getActiveFacilityManager();
+  if (manager) {
+    addFacilityChangeReport({
+      type: wasNew ? 'facility_created' : 'facility_updated',
+      managerId: manager.id,
+      managerName: manager.name,
+      facilityId: feature.properties.id,
+      facilityName: feature.properties.nameOfFacility ?? values.nameOfFacility,
+      changes: wasNew ? [] : updateChanges,
+    });
+  }
+
   onSaved({
     id: feature.properties.id,
-    isNew: !editingId,
+    isNew: wasNew,
   });
 }
 

@@ -7,14 +7,16 @@ import { loadFacilities } from './data/loadFacilities.js';
 import { filterFacilities } from './data/filterFacilities.js';
 import { searchFacilities } from './data/searchFacilities.js';
 import { state } from './state.js';
-import { showRoleGate, isAdmin } from './auth/roleGate.js';
+import { showRoleGate, isAdmin, isManagedFacility, getActiveFacilityManager } from './auth/roleGate.js';
 import { initSidebar } from './ui/sidebar.js';
-import { initFilters, updateFilterTagsMargin } from './ui/filters.js';
+import { initFilters, updateFilterTagsMargin, reloadFilters } from './ui/filters.js';
 import { renderCards } from './ui/cards.js';
 import { openPopup } from './ui/popup.js';
-import { initFacilityForm, openEditForm } from './ui/facilityForm.js';
+import { initFacilityForm, openEditForm, refreshFacilityFormOptions } from './ui/facilityForm.js';
 import { initAdminToolbar, updateRoleUi } from './ui/adminToolbar.js';
 import { showMarkerActionMenu } from './ui/markerActions.js';
+import { initSettingsPanel } from './ui/settingsPanel.js';
+import { initMessagesPanel } from './ui/messagesPanel.js';
 
 async function init() {
   createMap('map');
@@ -31,6 +33,14 @@ async function init() {
       }
     },
   });
+  initSettingsPanel({
+    onCatalogsChanged: () => {
+      refreshFacilityFormOptions();
+      reloadFilters();
+      refreshView();
+    },
+  });
+  initMessagesPanel();
   initAdminToolbar();
 
   try {
@@ -67,10 +77,15 @@ function refreshView() {
   );
   const visible = searchFacilities(filtered, state.searchQuery);
 
+  // Facility managers only see their assigned facilities in the sidebar list
+  const listFeatures = getActiveFacilityManager()
+    ? visible.filter((feature) => isManagedFacility(feature.properties?.id))
+    : visible;
+
   updateFilterTagsMargin();
   renderCards(
     document.getElementById('cards'),
-    visible,
+    listFeatures,
     openPopup,
     refreshView,
   );
@@ -88,7 +103,7 @@ function refreshView() {
 }
 
 function onMarkerClick(feature, layer) {
-  if (isAdmin()) {
+  if (isAdmin() && isManagedFacility(feature.properties?.id)) {
     showMarkerActionMenu(feature, layer, {
       onView: openPopup,
       onEdit: openEditForm,

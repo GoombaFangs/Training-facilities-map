@@ -39,12 +39,26 @@ export const AREAS = [
 
 export const FACILITY_STATUSES = [
   { value: 'פעיל', label: 'פעיל', cssClass: 'statusActive' },
-  { value: 'לא פעיל', label: 'לא פעיל', cssClass: 'statusInactive' },
-  { value: 'בבניה', label: 'בבניה', cssClass: 'statusBuilding' },
+  { value: 'לא כשיר', label: 'לא כשיר', cssClass: 'statusInactive' },
+  { value: 'בהקמה', label: 'בהקמה', cssClass: 'statusBuilding' },
 ];
 
+/** Old status labels → current labels (data + catalogs migration) */
+export const STATUS_VALUE_MIGRATIONS = {
+  'לא פעיל': 'לא כשיר',
+  בבניה: 'בהקמה',
+  'לא קשיר': 'לא כשיר',
+};
+
+export function migrateStatusValue(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return raw;
+  return STATUS_VALUE_MIGRATIONS[raw] ?? raw;
+}
+
 export function getStatusByValue(value) {
-  return FACILITY_STATUSES.find((s) => s.value === value) ?? null;
+  const migrated = migrateStatusValue(value);
+  return FACILITY_STATUSES.find((s) => s.value === migrated) ?? null;
 }
 export const LOCATIONS = [
   'בסיס צפון',

@@ -1,11 +1,12 @@
 import { loadStoredFacilities, saveFacilities } from './storage.js';
+import { migrateStatusValue } from '../config/constants.js';
 
 const DATA_URL = '/data/data.geojson';
 
 export async function loadFacilities() {
   const stored = loadStoredFacilities();
   if (stored) {
-    return ensureFeatureIds(stored);
+    return ensureFeatureIds(stored, { persistIfMigrated: true });
   }
 
   const response = await fetch(DATA_URL);
@@ -19,19 +20,34 @@ export async function loadFacilities() {
     throw new Error('Invalid GeoJSON: expected a FeatureCollection');
   }
 
-  return ensureFeatureIds(data);
+  return ensureFeatureIds(data, { persistIfMigrated: true });
 }
 
 /**
  * @param {GeoJSON.FeatureCollection} data
+ * @param {{ persistIfMigrated?: boolean }} [options]
  */
-export function ensureFeatureIds(data) {
+export function ensureFeatureIds(data, options = {}) {
+  let migrated = false;
+
   data.features.forEach((feature) => {
     if (!feature.properties) feature.properties = {};
     if (!feature.properties.id) {
       feature.properties.id = createId();
     }
+
+    const prevStatus = feature.properties.statusOfFacility;
+    const nextStatus = migrateStatusValue(prevStatus);
+    if (nextStatus && nextStatus !== prevStatus) {
+      feature.properties.statusOfFacility = nextStatus;
+      migrated = true;
+    }
   });
+
+  if (migrated && options.persistIfMigrated) {
+    saveFacilities(data);
+  }
+
   return data;
 }
 

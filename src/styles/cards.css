@@ -38,6 +38,15 @@
   box-shadow: 0 8px 22px rgba(15, 28, 40, 0.12);
 }
 
+.card.is-dimmed {
+  opacity: 0.3;
+}
+
+.card.is-dimmed:hover {
+  transform: none;
+  box-shadow: var(--card-shadow);
+}
+
 .appShell.is-admin .cards {
   top: auto;
   height: auto;
@@ -160,6 +169,11 @@
 .lashbitEz {
   background-color: var(--tag-ez-bg);
   color: var(--tag-ez-fg);
+}
+
+.facilityTypeCustom {
+  background-color: #eef2f6;
+  color: #4b5b6b;
 }
 
 @media (max-width: 768px) {
