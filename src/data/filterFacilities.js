@@ -8,7 +8,6 @@
  *   types?: string[],
  *   areas?: string[],
  *   statuses?: string[],
- *   locations?: string[],
  *   trainingTypes?: string[],
  *   trainingFrames?: string[],
  *   trainingOptions?: string[],
@@ -20,7 +19,6 @@ export function filterFacilities(data, filters = {}) {
   const types = filters.types ?? [];
   const areas = filters.areas ?? [];
   const statuses = filters.statuses ?? [];
-  const locations = filters.locations ?? [];
   const trainingTypes = filters.trainingTypes ?? [];
   const trainingFrames = filters.trainingFrames ?? [];
   const trainingOptions = filters.trainingOptions ?? [];
@@ -29,7 +27,6 @@ export function filterFacilities(data, filters = {}) {
     types.length > 0 ||
     areas.length > 0 ||
     statuses.length > 0 ||
-    locations.length > 0 ||
     trainingTypes.length > 0 ||
     trainingFrames.length > 0 ||
     trainingOptions.length > 0;
@@ -41,8 +38,13 @@ export function filterFacilities(data, filters = {}) {
     const nested = props.TypesOfFacilities ?? [];
 
     if (areas.length > 0 && !areas.includes(props.areaInTheCountry)) return false;
-    if (statuses.length > 0 && !statuses.includes(props.statusOfFacility)) return false;
-    if (locations.length > 0 && !locations.includes(props.locationOfFacility)) return false;
+
+    if (statuses.length > 0) {
+      const statusMatch =
+        statuses.includes(props.statusOfFacility) ||
+        nested.some((t) => statuses.includes(t.statusOfFacility));
+      if (!statusMatch) return false;
+    }
 
     if (types.length > 0) {
       const ok = nested.some((t) => types.includes(t.typeOfFacility));

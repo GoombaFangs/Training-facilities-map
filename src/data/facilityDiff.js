@@ -10,39 +10,51 @@ export function describeFacilityChanges(before, after) {
   const changes = [];
   const bp = before.properties;
   const ap = after.properties;
-  const bt = bp.TypesOfFacilities?.[0] ?? {};
-  const at = ap.TypesOfFacilities?.[0] ?? {};
 
-  pushChange(changes, 'שם המתקן', bp.nameOfFacility, ap.nameOfFacility);
+  pushChange(changes, 'שם נקודת הציון', bp.nameOfFacility, ap.nameOfFacility);
   pushChange(changes, 'יחידה', bp.unitOwningTheFacility, ap.unitOwningTheFacility);
-  pushChange(changes, 'סטטוס', bp.statusOfFacility, ap.statusOfFacility);
   pushChange(changes, 'טלפון', bp.phoneOfFacility, ap.phoneOfFacility);
   pushChange(changes, 'איש קשר', bp.contactNameOfFacility, ap.contactNameOfFacility);
   pushChange(changes, 'תפקיד איש קשר', bp.contactRoleOfFacility, ap.contactRoleOfFacility);
-  pushChange(changes, 'מיקום', bp.locationOfFacility, ap.locationOfFacility);
   pushChange(changes, 'אזור בארץ', bp.areaInTheCountry, ap.areaInTheCountry);
-  pushChange(changes, 'סוג מתקן', bt.typeOfFacility, at.typeOfFacility);
-  pushChange(changes, 'סוג ספציפי', bt.specificTypeOfFacility, at.specificTypeOfFacility);
-  pushChange(changes, 'מסגרת אימון', bt.trainingFrame, at.trainingFrame);
-  pushChange(
-    changes,
-    'אפשרויות אימון',
-    formatList(bt.trainingOptions),
-    formatList(at.trainingOptions),
-  );
-  pushChange(changes, 'הערות', bt.comments, at.comments);
+
+  const beforeTypes = bp.TypesOfFacilities ?? [];
+  const afterTypes = ap.TypesOfFacilities ?? [];
+  pushChange(changes, 'מספר מתקנים', String(beforeTypes.length), String(afterTypes.length));
+
+  const maxTypes = Math.max(beforeTypes.length, afterTypes.length);
+  for (let i = 0; i < maxTypes; i++) {
+    const bt = beforeTypes[i] ?? {};
+    const at = afterTypes[i] ?? {};
+    const label = `מתקן ${i + 1}`;
+    pushChange(changes, `${label} — שם`, bt.name, at.name);
+    pushChange(changes, `${label} — סטטוס`, bt.statusOfFacility, at.statusOfFacility);
+    pushChange(changes, `${label} — מיקום בבסיס`, bt.locationOfFacility, at.locationOfFacility);
+    pushChange(changes, `${label} — סוג`, bt.typeOfFacility, at.typeOfFacility);
+    pushChange(changes, `${label} — סוג אימון`, bt.specificTypeOfFacility, at.specificTypeOfFacility);
+    pushChange(changes, `${label} — מסגרת`, bt.trainingFrame, at.trainingFrame);
+    pushChange(changes, `${label} — איש קשר`, bt.contactName, at.contactName);
+    pushChange(changes, `${label} — דרגה`, bt.contactRank, at.contactRank);
+    pushChange(changes, `${label} — טלפון איש קשר`, bt.contactPhone, at.contactPhone);
+    pushChange(
+      changes,
+      `${label} — סוגי אימון`,
+      formatList(bt.trainingOptions),
+      formatList(at.trainingOptions),
+    );
+    pushChange(changes, `${label} — הערות`, bt.comments, at.comments);
+    const beforeImgs = Array.isArray(bt.imgArr) ? bt.imgArr.length : 0;
+    const afterImgs = Array.isArray(at.imgArr) ? at.imgArr.length : 0;
+    if (beforeImgs !== afterImgs) {
+      changes.push(`${label} — תמונות: ${beforeImgs} → ${afterImgs}`);
+    } else if (beforeImgs > 0 && JSON.stringify(bt.imgArr) !== JSON.stringify(at.imgArr)) {
+      changes.push(`${label} — עודכנו התמונות`);
+    }
+  }
 
   const beforeCoords = formatCoords(before.geometry?.coordinates);
   const afterCoords = formatCoords(after.geometry?.coordinates);
   pushChange(changes, 'מיקום במפה', beforeCoords, afterCoords);
-
-  const beforeImgs = Array.isArray(bt.imgArr) ? bt.imgArr.length : 0;
-  const afterImgs = Array.isArray(at.imgArr) ? at.imgArr.length : 0;
-  if (beforeImgs !== afterImgs) {
-    changes.push(`תמונות: ${beforeImgs} → ${afterImgs}`);
-  } else if (beforeImgs > 0 && JSON.stringify(bt.imgArr) !== JSON.stringify(at.imgArr)) {
-    changes.push('עודכנו התמונות');
-  }
 
   return changes;
 }

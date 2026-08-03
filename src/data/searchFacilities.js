@@ -23,9 +23,15 @@ export function searchFacilities(features, query) {
       p.contactNameOfFacility,
       p.contactRoleOfFacility,
       ...nested.flatMap((t) => [
+        t.name,
+        t.statusOfFacility,
+        t.locationOfFacility,
         t.typeOfFacility,
         t.specificTypeOfFacility,
         t.trainingFrame,
+        t.contactName,
+        t.contactRank,
+        t.contactPhone,
         t.comments,
         ...(Array.isArray(t.trainingOptions)
           ? t.trainingOptions

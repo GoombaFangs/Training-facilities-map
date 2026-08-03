@@ -18,11 +18,11 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  border-radius: 18px;
+  border-radius: var(--modal-radius, 16px);
   display: flex;
   flex-direction: row;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--modal-shadow, 0 20px 48px rgba(15, 28, 40, 0.22));
   font-size: 1rem;
 }
 
@@ -85,17 +85,17 @@
 
 .popUpHeader {
   flex-shrink: 0;
-  padding: 1.4rem 1.6rem 1rem;
-  border-bottom: 1px solid #eceff2;
-  background: linear-gradient(180deg, #f7f9fb 0%, #fff 100%);
+  padding: var(--modal-pad-y, 1.25rem) var(--modal-pad-x, 1.5rem) var(--modal-gap, 1rem);
+  border-bottom: 1px solid var(--modal-border, #e4e9ef);
+  background: linear-gradient(180deg, var(--modal-soft-bg, #f7f9fb) 0%, #fff 100%);
 }
 
 .popUpEyebrow {
-  margin: 0 0 0.3rem;
+  margin: 0 0 0.25rem;
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   color: var(--color-primary-open);
-  font-weight: 500;
+  font-weight: var(--font-medium, 500);
 }
 
 .popUpTitle {
@@ -104,15 +104,20 @@
   border: none;
   color: var(--color-text);
   font-size: 1.4rem;
-  font-weight: 600;
-  line-height: 1.3;
+  font-weight: var(--font-semibold, 600);
+  line-height: var(--leading-tight, 1.25);
 }
 
 .popUpSubTitle {
-  margin: 0.4rem 0 0;
+  margin: 0.35rem 0 0;
   color: var(--color-muted-strong);
-  font-size: 0.95rem;
-  font-weight: 400;
+  font-size: 0.92rem;
+  font-weight: var(--font-regular, 400);
+  line-height: var(--leading-snug, 1.35);
+}
+
+.popUpSubTitle[hidden] {
+  display: none !important;
 }
 
 .popUpScroll {
@@ -120,19 +125,22 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1.15rem 1.6rem 1.5rem;
+  padding: var(--modal-pad-y, 1.25rem) var(--modal-pad-x, 1.5rem);
   direction: rtl;
+  display: flex;
+  flex-direction: column;
+  gap: var(--modal-gap, 1rem);
 }
 
 .popUpMeta {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-  padding: 0.9rem 1rem;
-  background: #f7f9fb;
-  border: 1px solid #eceff2;
-  border-radius: 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--modal-gap, 1rem);
+  margin: 0;
+  padding: var(--modal-gap, 1rem);
+  background: var(--modal-soft-bg, #f7f9fb);
+  border: 1px solid var(--modal-border, #e4e9ef);
+  border-radius: var(--modal-section-radius, 12px);
 }
 
 .popUpMetaItem {
@@ -145,16 +153,22 @@
 
 .popUpMetaLabel {
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: var(--font-medium, 500);
   color: var(--color-muted-strong);
+  line-height: var(--leading-tight, 1.25);
 }
 
 .popUpMetaValue {
   font-size: 0.98rem;
-  font-weight: 550;
+  font-weight: var(--font-semibold, 600);
   color: var(--color-text);
-  line-height: 1.35;
+  line-height: var(--leading-snug, 1.35);
   word-break: break-word;
+}
+
+.popUpMetaValue.is-empty {
+  color: var(--color-muted);
+  font-weight: var(--font-regular, 400);
 }
 
 .contactDetails {
@@ -168,17 +182,17 @@
   margin: 0;
   color: var(--color-text);
   font-size: 0.95rem;
-  font-weight: 550;
-  line-height: 1.35;
+  font-weight: var(--font-semibold, 600);
+  line-height: var(--leading-snug, 1.35);
   word-break: break-word;
 }
 
 .contactPhoneLink {
   color: var(--color-primary);
   text-decoration: none;
-  font-weight: 550;
-  font-size: 0.98rem;
-  line-height: 1.35;
+  font-weight: var(--font-medium, 500);
+  font-size: 0.95rem;
+  line-height: var(--leading-snug, 1.35);
 }
 
 .contactPhoneLink:hover {
@@ -188,7 +202,7 @@
 
 .contactPhoneEmpty {
   color: var(--color-muted-strong);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
 }
 
 .popUp .statusBadge {
@@ -199,7 +213,7 @@
   padding: 0.28rem 0.75rem;
   border-radius: 999px;
   font-size: 0.82rem;
-  font-weight: 550;
+  font-weight: var(--font-medium, 500);
 }
 
 .popUp .statusActive {
@@ -220,101 +234,201 @@
 .facilitySections {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0;
+  min-width: 0;
+}
+
+.facilityBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--modal-gap-sm, 0.75rem);
+  min-width: 0;
+}
+
+.facilityBlockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--modal-gap-sm, 0.75rem);
+}
+
+.facilityBlockTitle {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: var(--font-semibold, 600);
+  color: var(--color-muted-strong);
+  letter-spacing: 0.01em;
+}
+
+.facilityPopTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--modal-gap-xs, 0.5rem);
+}
+
+.facilityPopTab {
+  border: 1px solid var(--modal-control-border, #d5dde5);
+  background: #fff;
+  color: var(--color-text);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: var(--font-medium, 500);
+  cursor: pointer;
+  line-height: 1.2;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.facilityPopTab:hover {
+  border-color: #b9c6d3;
+  background: var(--modal-soft-bg, #f7f9fb);
+}
+
+.facilityPopTab.is-active {
+  background: #e7f2f8;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold, 600);
 }
 
 .facilitySection {
-  padding: 1rem 1.05rem 1.1rem;
-  border: 1px solid #eceff2;
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--modal-gap, 1rem);
+  padding: var(--modal-gap, 1rem);
+  border: 1px solid var(--modal-border, #e4e9ef);
+  border-radius: var(--modal-section-radius, 12px);
   background: #fff;
+}
+
+.facilitySectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--modal-gap-sm, 0.75rem);
+  flex-wrap: wrap;
+  padding-bottom: var(--modal-gap-sm, 0.75rem);
+  border-bottom: 1px solid var(--modal-border, #e4e9ef);
 }
 
 .facilitySectionTitle {
   display: inline-flex;
   align-items: center;
-  margin: 0 0 0.85rem;
+  margin: 0;
   padding: 0.35rem 0.85rem;
   border-radius: 999px;
   font-size: 0.88rem;
-  font-weight: 550;
+  font-weight: var(--font-medium, 500);
+}
+
+.facilityFieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--modal-gap, 1rem) var(--modal-gap, 1rem);
 }
 
 .popUpField {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  margin-bottom: 0.75rem;
+  gap: 0.3rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.popUpFieldWide {
+  grid-column: 1 / -1;
 }
 
 .popUpFieldLabel {
   margin: 0;
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: var(--font-medium, 500);
   color: var(--color-muted-strong);
+  line-height: var(--leading-tight, 1.25);
 }
 
 .popUpFieldValue {
   margin: 0;
   font-size: 0.98rem;
-  font-weight: 500;
+  font-weight: var(--font-semibold, 600);
   color: var(--color-text);
-  line-height: 1.4;
+  line-height: var(--leading-snug, 1.35);
+  word-break: break-word;
+}
+
+.popUpFieldValue.is-empty {
+  color: var(--color-muted);
+  font-weight: var(--font-regular, 400);
 }
 
 .options {
   width: 100%;
-  margin: 0.15rem 0 0;
+  margin: 0;
+  padding-top: var(--modal-gap-sm, 0.75rem);
+  border-top: 1px solid var(--modal-border, #e4e9ef);
   color: var(--color-text);
 }
 
 .options > p {
-  margin: 0 0 0.45rem;
+  margin: 0 0 var(--modal-gap-xs, 0.5rem);
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: var(--font-medium, 500);
   color: var(--color-muted-strong);
+  line-height: var(--leading-tight, 1.25);
 }
 
 .optionsContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--modal-gap-xs, 0.5rem);
 }
 
 .optionsContainer span {
   color: var(--color-text);
-  background: #eef2f6;
-  border: 1px solid #e0e6ec;
+  background: var(--modal-soft-bg, #f7f9fb);
+  border: 1px solid var(--modal-border, #e4e9ef);
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: var(--font-medium, 500);
+}
+
+.optionsEmpty {
+  color: var(--color-muted-strong) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  font-weight: var(--font-regular, 400) !important;
 }
 
 .comments {
   width: 100%;
-  background: #f7f9fb;
-  border-radius: 10px;
-  border: 1px solid #e0e6ec;
+  background: var(--modal-soft-bg, #f7f9fb);
+  border-radius: var(--modal-control-radius, 10px);
+  border: 1px solid var(--modal-border, #e4e9ef);
   display: flex;
   flex-direction: column;
-  margin-top: 0.85rem;
-  padding: 0.7rem 0.85rem;
+  margin: 0;
+  padding: var(--modal-gap-sm, 0.75rem) var(--modal-gap, 1rem);
   color: var(--color-text);
+  box-sizing: border-box;
 }
 
 .commentsTitle {
   margin: 0 0 0.3rem;
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: var(--font-medium, 500);
   color: var(--color-muted-strong);
+  line-height: var(--leading-tight, 1.25);
 }
 
 .commentsText {
   margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.45;
+  font-size: 0.95rem;
+  line-height: var(--leading-normal, 1.45);
   color: var(--color-text);
+  font-weight: var(--font-regular, 400);
 }
 
 .popUpImgContainer {
@@ -486,7 +600,8 @@
 }
 
 @media (max-width: 900px) {
-  .popUpMeta {
+  .popUpMeta,
+  .facilityFieldsGrid {
     grid-template-columns: 1fr;
   }
 }

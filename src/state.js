@@ -14,8 +14,6 @@ export const state = {
   /** @type {string[]} */
   filterStatuses: [],
   /** @type {string[]} */
-  filterLocations: [],
-  /** @type {string[]} */
   filterTrainingTypes: [],
   /** @type {string[]} */
   filterTrainingFrames: [],

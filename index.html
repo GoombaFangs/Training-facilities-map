@@ -290,13 +290,6 @@
               </section>
               <section class="filterSection">
                 <button type="button" class="filterSectionToggle" data-filter-section-toggle aria-expanded="false">
-                  <span>מיקום / בסיס</span>
-                  <span class="filterSectionChevron" aria-hidden="true"></span>
-                </button>
-                <div id="filterChipsLocations" class="filterChipGroup"></div>
-              </section>
-              <section class="filterSection">
-                <button type="button" class="filterSectionToggle" data-filter-section-toggle aria-expanded="false">
                   <span>סוג אימון</span>
                   <span class="filterSectionChevron" aria-hidden="true"></span>
                 </button>
@@ -329,21 +322,17 @@
         <button type="button" id="closePopUp" class="closePopUp" aria-label="סגור">&times;</button>
         <div id="popUpBody" class="popUpBody">
           <header id="popUpHeader" class="popUpHeader">
-            <p class="popUpEyebrow">פרטי מתקן</p>
+            <p class="popUpEyebrow">פרטי נקודת ציון</p>
             <h2 id="popUpTitle" class="popUpTitle"></h2>
             <p id="popUpSubTitle" class="popUpSubTitle"></p>
           </header>
           <div id="popUpScroll" class="popUpScroll">
             <div class="popUpMeta">
               <div class="popUpMetaItem">
-                <span class="popUpMetaLabel">יחידה בעלת המתקן</span>
+                <span class="popUpMetaLabel">שם יחידה</span>
                 <span id="unitText" class="popUpMetaValue"></span>
               </div>
               <div class="popUpMetaItem">
-                <span class="popUpMetaLabel">סטטוס</span>
-                <span id="statusText" class="statusBadge"></span>
-              </div>
-              <div class="popUpMetaItem popUpMetaItemWide">
                 <span class="popUpMetaLabel">יצירת קשר</span>
                 <div id="contactDetails" class="contactDetails">
                   <p id="contactPersonLine" class="contactPersonLine" hidden></p>
@@ -374,8 +363,8 @@
         <div class="wizardTop">
           <header class="wizardHeader">
             <div>
-              <p class="wizardEyebrow">ניהול מתקנים</p>
-              <h2 id="facilityFormTitle">הוספת מתקן</h2>
+              <p class="wizardEyebrow">ניהול נקודות ציון</p>
+              <h2 id="facilityFormTitle">הוספת נקודת ציון</h2>
             </div>
             <button type="button" id="facilityFormCancel" class="wizardClose" aria-label="סגור">
               &times;
@@ -385,17 +374,22 @@
           <nav class="wizardSteps" aria-label="שלבי הטופס">
             <button type="button" class="wizardStep is-active" data-step="1">
               <span class="wizardStepNum">1</span>
-              <span class="wizardStepLabel">פרטים</span>
+              <span class="wizardStepLabel">מיקום</span>
             </button>
             <span class="wizardStepLine" data-line="1" aria-hidden="true"></span>
             <button type="button" class="wizardStep" data-step="2">
               <span class="wizardStepNum">2</span>
-              <span class="wizardStepLabel">מיקום</span>
+              <span class="wizardStepLabel">פרטים</span>
             </button>
             <span class="wizardStepLine" data-line="2" aria-hidden="true"></span>
             <button type="button" class="wizardStep" data-step="3">
               <span class="wizardStepNum">3</span>
-              <span class="wizardStepLabel">עיצוב</span>
+              <span class="wizardStepLabel">מתקנים</span>
+            </button>
+            <span class="wizardStepLine" data-line="3" aria-hidden="true"></span>
+            <button type="button" class="wizardStep" data-step="4">
+              <span class="wizardStepNum">4</span>
+              <span class="wizardStepLabel">תמונות</span>
             </button>
           </nav>
         </div>
@@ -403,19 +397,19 @@
         <p id="facilityFormError" class="wizardError" hidden></p>
 
         <div class="wizardBody">
-          <section class="wizardPanel is-active" data-panel="1">
-            <p class="wizardPanelLead">בחרו מהרשימות — פחות הקלדה, יותר מהירות</p>
+          <section class="wizardPanel" data-panel="2">
+            <p class="wizardPanelLead">פרטי נקודת הציון ורשימת המתקנים שבה</p>
             <div class="wizardGrid">
               <label class="wizardField wizardFieldFull">
-                <span>שם המתקן</span>
-                <input id="formName" type="text" required placeholder="לדוגמה: מתקן אימון צפון" />
+                <span>שם נקודת הציון</span>
+                <input id="formName" type="text" required placeholder="לדוגמה: בסיס אימונים צפון" />
               </label>
               <label class="wizardField wizardFieldFull">
-                <span>יחידה בעלת המתקן</span>
+                <span>יחידה בנקודה</span>
                 <input id="formUnit" type="text" placeholder="שם היחידה" />
               </label>
-              <div class="wizardField wizardFieldFull contactBlock">
-                <span class="contactBlockTitle">יצירת קשר עם המתקן</span>
+              <div class="wizardField wizardFieldFull contactBlock wizardSection">
+                <span class="contactBlockTitle">יצירת קשר עם הנקודה</span>
                 <div class="contactFields">
                   <label class="wizardField">
                     <span>שם</span>
@@ -437,30 +431,33 @@
                   </label>
                 </div>
               </div>
+              <div class="wizardField wizardFieldFull waypointFacilitiesBlock wizardSection">
+                <div class="waypointFacilitiesHead">
+                  <span class="contactBlockTitle">מתקנים בנקודה</span>
+                  <button type="button" id="addFacilityToWaypointBtn" class="waypointAddBtn">
+                    + הוסף מתקן
+                  </button>
+                </div>
+                <p class="waypointFacilitiesHint">בחרו סוג מתקן לכל שורה. אפשר להוסיף עוד לרשימה.</p>
+                <ul id="waypointFacilitiesList" class="waypointFacilitiesList" aria-label="רשימת מתקנים"></ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="wizardPanel" data-panel="3">
+            <p class="wizardPanelLead">ערכו את פרטי כל מתקן בנקודת הציון</p>
+            <div id="facilityEditorTabs" class="facilityEditorTabs" role="tablist" aria-label="מתקנים לעריכה"></div>
+            <div class="wizardGrid facilityEditorGrid">
               <div class="wizardField">
                 <span>סטטוס</span>
                 <select id="formStatus"></select>
               </div>
               <div class="wizardField">
-                <span>מיקום / בסיס</span>
-                <select id="formLocation" data-other-for="formLocationOther"></select>
+                <span>מיקום בבסיס</span>
                 <input
-                  id="formLocationOther"
-                  class="otherInput"
+                  id="formLocation"
                   type="text"
-                  hidden
-                  placeholder="הזינו מיקום אחר"
-                />
-              </div>
-              <div class="wizardField">
-                <span>סוג מתקן</span>
-                <select id="formTypeOfFacility" data-other-for="formTypeOther"></select>
-                <input
-                  id="formTypeOther"
-                  class="otherInput"
-                  type="text"
-                  hidden
-                  placeholder="הזינו סוג מתקן אחר"
+                  placeholder="לדוגמה: אגף צפוני, ליד חדר אוכל"
                 />
               </div>
               <div class="wizardField">
@@ -496,6 +493,28 @@
                   placeholder="הזינו סוג אימון אחר"
                 />
               </div>
+              <div class="wizardField wizardFieldFull contactBlock facilityContactBlock wizardSection">
+                <span class="contactBlockTitle">איש קשר למתקן <span class="contactOptionalHint">(לא חובה)</span></span>
+                <div class="contactFields">
+                  <label class="wizardField">
+                    <span>שם</span>
+                    <input id="formFacilityContactName" type="text" placeholder="שם איש הקשר" />
+                  </label>
+                  <label class="wizardField">
+                    <span>דרגה</span>
+                    <input id="formFacilityContactRank" type="text" placeholder="דרגה" />
+                  </label>
+                  <label class="wizardField">
+                    <span>טלפון</span>
+                    <input
+                      id="formFacilityContactPhone"
+                      type="tel"
+                      inputmode="tel"
+                      placeholder="לדוגמה: 03-1234567"
+                    />
+                  </label>
+                </div>
+              </div>
               <label class="wizardField wizardFieldFull">
                 <span>הערות</span>
                 <textarea id="formComments" rows="3" placeholder="מידע נוסף למשתמשים..."></textarea>
@@ -503,8 +522,8 @@
             </div>
           </section>
 
-          <section class="wizardPanel" data-panel="2">
-            <p class="wizardPanelLead">קבעו את מיקום המתקן על המפה</p>
+          <section class="wizardPanel is-active" data-panel="1">
+            <p class="wizardPanelLead">קבעו את מיקום נקודת הציון על המפה</p>
             <div class="locationCard">
               <div class="locationCardText">
                 <h3>בחירה על המפה</h3>
@@ -540,8 +559,8 @@
             <p id="formAreaAuto" class="locationAreaAuto">האזור בארץ ייקבע אוטומטית לפי המיקום</p>
           </section>
 
-          <section class="wizardPanel" data-panel="3">
-            <p class="wizardPanelLead">העלו תמונות להצגה בכרטיס המתקן</p>
+          <section class="wizardPanel" data-panel="4">
+            <p class="wizardPanelLead">העלו תמונות ושייכו כל תמונה למתקן בנקודה</p>
             <div class="imageUpload">
               <input
                 id="formImgInput"
@@ -560,11 +579,11 @@
                   </svg>
                 </span>
                 <span class="imageUploadTitle">גררו תמונות לכאן או לחצו לבחירה</span>
-                <span class="imageUploadSub">JPG, PNG או WEBP · עד 8 תמונות</span>
+                <span class="imageUploadSub">JPG, PNG או WEBP · עד 8 תמונות לכל מתקן</span>
               </button>
               <div id="formImgPicker" class="imagePicker" role="list" aria-label="תמונות שהועלו"></div>
             </div>
-            <p class="wizardHint">ניתן להעלות כמה תמונות. לחיצה על × מסירה תמונה מהרשימה.</p>
+            <p class="wizardHint">ליד כל תמונה בחרו לאיזה מתקן היא שייכת. לחיצה על × מסירה תמונה.</p>
           </section>
         </div>
 
@@ -587,7 +606,7 @@
             </span>
           </button>
           <button type="submit" id="wizardSave" class="wizardBtn wizardBtnPrimary" hidden>
-            צור מתקן
+            צור נקודת ציון
           </button>
         </footer>
       </form>

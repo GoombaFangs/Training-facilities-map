@@ -20,20 +20,20 @@
   max-height: 88vh;
   overflow: hidden;
   background: #fff;
-  border-radius: 18px;
+  border-radius: var(--modal-radius);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--modal-shadow);
 }
 
 .settingsHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1.35rem 1.5rem 1rem;
-  border-bottom: 1px solid #e6ebf0;
-  background: linear-gradient(180deg, #f7f9fb 0%, #ffffff 100%);
+  gap: var(--modal-gap);
+  padding: var(--modal-pad-y) var(--modal-pad-x) var(--modal-gap-sm);
+  border-bottom: 1px solid var(--modal-border);
+  background: linear-gradient(180deg, var(--modal-soft-bg) 0%, #ffffff 100%);
   flex-shrink: 0;
 }
 
@@ -54,9 +54,9 @@
 
 .settingsTabs {
   display: flex;
-  gap: 0.35rem;
-  padding: 0.75rem 1.5rem 0;
-  border-bottom: 1px solid #e6ebf0;
+  gap: var(--modal-gap-xs);
+  padding: var(--modal-gap-sm) var(--modal-pad-x) 0;
+  border-bottom: 1px solid var(--modal-border);
   background: #fff;
   flex-shrink: 0;
 }
@@ -110,7 +110,7 @@
   flex-direction: column;
   min-height: 0;
   flex: 1;
-  padding: 1rem 1.25rem 1.15rem;
+  padding: var(--modal-gap) var(--modal-pad-x);
   overflow: hidden;
 }
 
@@ -283,11 +283,11 @@
 .settingsNav {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: 1rem 0.75rem;
-  border-left: 1px solid #e6ebf0;
+  gap: var(--modal-gap-xs);
+  padding: var(--modal-gap) var(--modal-gap-sm);
+  border-left: 1px solid var(--modal-border);
   overflow-y: auto;
-  background: #f7f9fb;
+  background: var(--modal-soft-bg);
 }
 
 .settingsNavBtn {
@@ -319,7 +319,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 1rem 1.25rem 1.15rem;
+  padding: var(--modal-gap) var(--modal-pad-x);
   overflow: hidden;
 }
 
@@ -327,8 +327,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: var(--modal-gap-sm);
+  margin-bottom: var(--modal-gap-sm);
   flex-shrink: 0;
 }
 
@@ -340,14 +340,14 @@
 }
 
 .settingsAddBtn {
-  border: 1px solid #c9d5e0;
+  border: 1px solid var(--modal-control-border);
   background: #fff;
   color: var(--color-primary);
-  border-radius: 9px;
-  padding: 0.45rem 0.8rem;
+  border-radius: var(--modal-control-radius);
+  padding: 0.45rem 0.85rem;
   font-family: inherit;
-  font-size: 0.88rem;
-  font-weight: 550;
+  font-size: 0.86rem;
+  font-weight: var(--font-semibold);
   cursor: pointer;
 }
 
@@ -373,7 +373,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: var(--modal-gap-sm);
   overflow-y: auto;
   min-height: 0;
   flex: 1;
@@ -382,16 +382,16 @@
 .settingsItem {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 0.55rem;
+  gap: var(--modal-gap-sm);
   align-items: center;
 }
 
 .settingsItemInput {
   width: 100%;
   box-sizing: border-box;
-  padding: 0.7rem 0.8rem;
-  border: 1px solid #d5dde5;
-  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--modal-control-border);
+  border-radius: var(--modal-control-radius);
   font-family: inherit;
   font-size: 0.95rem;
   color: var(--color-text);
@@ -401,12 +401,12 @@
 .settingsItemInput:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0.12);
+  box-shadow: var(--modal-focus-ring);
 }
 
 .settingsItemActions {
   display: flex;
-  gap: 0.3rem;
+  gap: var(--modal-gap-xs);
 }
 
 .settingsIconBtn {
@@ -444,10 +444,12 @@
 
 .settingsFooter {
   display: flex;
+  align-items: center;
   justify-content: flex-start;
-  gap: 0.65rem;
-  padding: 0.95rem 1.25rem 1.15rem;
-  border-top: 1px solid #e6ebf0;
+  gap: var(--modal-gap-sm);
+  padding: var(--modal-gap) var(--modal-pad-x) var(--modal-pad-y);
+  border-top: 1px solid var(--modal-border);
+  background: var(--modal-soft-bg);
   flex-shrink: 0;
 }
 
@@ -456,7 +458,7 @@
   flex-direction: column;
   min-height: 0;
   flex: 1;
-  padding: 1rem 1.25rem 1.15rem;
+  padding: var(--modal-gap) var(--modal-pad-x);
   overflow: hidden;
 }
 
@@ -474,7 +476,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--modal-gap-sm);
   overflow-y: auto;
   min-height: 0;
   flex: 1;
@@ -612,20 +614,20 @@
 }
 
 .settingsMapLayoutMain {
-  padding: 1.25rem 1.5rem 1.5rem;
+  padding: var(--modal-pad-y) var(--modal-pad-x);
   overflow: auto;
 }
 
 .settingsMapLayoutFields {
   display: grid;
-  gap: 1rem;
+  gap: var(--modal-gap);
   max-width: 28rem;
-  margin-top: 0.75rem;
+  margin-top: var(--modal-gap-sm);
 }
 
 .settingsMapLayoutField {
   display: grid;
-  gap: 0.35rem;
+  gap: var(--modal-gap-xs);
 }
 
 .settingsMapLayoutField span {

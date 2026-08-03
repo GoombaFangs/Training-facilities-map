@@ -46,6 +46,22 @@
   --leading-tight: 1.25;
   --leading-snug: 1.35;
   --leading-normal: 1.45;
+
+  /* Shared modal system (wizard + settings) */
+  --modal-radius: 16px;
+  --modal-pad-x: 1.5rem;
+  --modal-pad-y: 1.25rem;
+  --modal-gap: 1rem;
+  --modal-gap-sm: 0.75rem;
+  --modal-gap-xs: 0.5rem;
+  --modal-control-radius: 10px;
+  --modal-section-radius: 12px;
+  --modal-border: #e4e9ef;
+  --modal-control-border: #d5dde5;
+  --modal-soft-bg: #f7f9fb;
+  --modal-soft-bg-2: #f3f7fa;
+  --modal-focus-ring: 0 0 0 3px rgba(1, 84, 151, 0.12);
+  --modal-shadow: 0 20px 48px rgba(15, 28, 40, 0.22);
 }
 
 @font-face {

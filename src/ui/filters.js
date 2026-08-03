@@ -1,13 +1,14 @@
 import { getCatalogList, getFacilityTypeCssClass, getStatusCssClass } from '../data/optionCatalogs.js';
+import { AREAS } from '../config/constants.js';
 import { state } from '../state.js';
 
 /** @type {(() => void) | null} */
 let filtersOnChange = null;
 let filtersUiBound = false;
 
-/** @typedef {'types' | 'areas' | 'statuses' | 'locations' | 'trainingTypes' | 'trainingFrames' | 'trainingOptions'} FilterKind */
+/** @typedef {'types' | 'areas' | 'statuses' | 'trainingTypes' | 'trainingFrames' | 'trainingOptions'} FilterKind */
 
-/** @type {{ kind: FilterKind, stateKey: keyof typeof state, catalog: string, label: string, containerId: string }[]} */
+/** @type {{ kind: FilterKind, stateKey: keyof typeof state, catalog?: string, fixedValues?: string[], label: string, containerId: string }[]} */
 const FILTER_SECTIONS = [
   {
     kind: 'statuses',
@@ -19,7 +20,7 @@ const FILTER_SECTIONS = [
   {
     kind: 'areas',
     stateKey: 'filterAreas',
-    catalog: 'areas',
+    fixedValues: AREAS.map((a) => a.value),
     label: 'אזור בארץ',
     containerId: 'filterChipsAreas',
   },
@@ -29,13 +30,6 @@ const FILTER_SECTIONS = [
     catalog: 'facilityTypes',
     label: 'סוג מתקן',
     containerId: 'filterChipsTypes',
-  },
-  {
-    kind: 'locations',
-    stateKey: 'filterLocations',
-    catalog: 'locations',
-    label: 'מיקום / בסיס',
-    containerId: 'filterChipsLocations',
   },
   {
     kind: 'trainingTypes',
@@ -103,7 +97,6 @@ export function reloadFilters() {
  *   types: string[],
  *   areas: string[],
  *   statuses: string[],
- *   locations: string[],
  *   trainingTypes: string[],
  *   trainingFrames: string[],
  *   trainingOptions: string[],
@@ -114,7 +107,6 @@ export function getActiveFilters() {
     types: [...state.filterTypes],
     areas: [...state.filterAreas],
     statuses: [...state.filterStatuses],
-    locations: [...state.filterLocations],
     trainingTypes: [...state.filterTrainingTypes],
     trainingFrames: [...state.filterTrainingFrames],
     trainingOptions: [...state.filterTrainingOptions],
@@ -227,7 +219,9 @@ function renderSectionChips(section) {
   const container = document.getElementById(section.containerId);
   if (!container) return;
 
-  const values = getCatalogList(/** @type {any} */ (section.catalog));
+  const values = section.fixedValues
+    ? [...section.fixedValues]
+    : getCatalogList(/** @type {any} */ (section.catalog));
   container.innerHTML = values
     .map((value, index) => {
       const id = `filter_${section.kind}_${index}`;
@@ -359,7 +353,6 @@ function clearFilterState() {
   state.filterTypes = [];
   state.filterAreas = [];
   state.filterStatuses = [];
-  state.filterLocations = [];
   state.filterTrainingTypes = [];
   state.filterTrainingFrames = [];
   state.filterTrainingOptions = [];
@@ -370,7 +363,6 @@ function snapshotFilters() {
     filterTypes: [...state.filterTypes],
     filterAreas: [...state.filterAreas],
     filterStatuses: [...state.filterStatuses],
-    filterLocations: [...state.filterLocations],
     filterTrainingTypes: [...state.filterTrainingTypes],
     filterTrainingFrames: [...state.filterTrainingFrames],
     filterTrainingOptions: [...state.filterTrainingOptions],

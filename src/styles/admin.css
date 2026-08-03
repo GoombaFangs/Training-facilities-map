@@ -205,46 +205,45 @@
   max-height: 92vh;
   overflow: hidden;
   background: #fff;
-  border-radius: 18px;
+  border-radius: var(--modal-radius);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--modal-shadow);
 }
 
 .wizardTop {
   flex-shrink: 0;
-  background: linear-gradient(180deg, #f7f9fb 0%, #ffffff 100%);
-  border-bottom: 1px solid #d8dee5;
+  background: linear-gradient(180deg, var(--modal-soft-bg) 0%, #ffffff 100%);
+  border-bottom: 1px solid var(--modal-border);
 }
 
 .wizardHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1.4rem 1.75rem 1rem;
-  border-bottom: 1px solid #e6ebf0;
+  gap: var(--modal-gap);
+  padding: var(--modal-pad-y) var(--modal-pad-x) var(--modal-gap-sm);
 }
 
 .wizardEyebrow {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.2rem;
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   color: var(--color-primary-open);
-  font-weight: 500;
+  font-weight: var(--font-medium);
 }
 
 .wizardHeader h2 {
   margin: 0;
-  font-size: 1.45rem;
-  font-weight: 600;
+  font-size: 1.4rem;
+  font-weight: var(--font-semibold);
   color: var(--color-text);
-  line-height: 1.3;
+  line-height: var(--leading-tight);
 }
 
 .wizardClose {
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 999px;
   border: none;
   background: #eef1f4;
@@ -252,6 +251,7 @@
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -267,17 +267,17 @@
   gap: 0;
   width: 100%;
   box-sizing: border-box;
-  /* Equal padding so the strip is centered between the dividers */
-  padding: 1.15rem 1.5rem;
+  padding: var(--modal-gap) var(--modal-pad-x) var(--modal-pad-y);
   margin: 0;
   background: transparent;
+  border-top: 1px solid var(--modal-border);
 }
 
 .wizardStep {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--modal-gap-xs);
   border: none;
   background: transparent;
   cursor: pointer;
@@ -297,7 +297,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.88rem;
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   background: #e8eef3;
   color: #7a8694;
   border: 2px solid transparent;
@@ -310,9 +310,9 @@
 }
 
 .wizardStepLabel {
-  font-size: 0.88rem;
-  font-weight: 500;
-  line-height: 1.2;
+  font-size: 0.84rem;
+  font-weight: var(--font-medium);
+  line-height: var(--leading-tight);
   text-align: center;
   width: 100%;
   transition: color 0.25s ease;
@@ -327,7 +327,7 @@
 
 .wizardStep.is-active .wizardStepLabel {
   color: var(--color-primary);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
 }
 
 .wizardStep.is-done .wizardStepNum {
@@ -351,12 +351,10 @@
 }
 
 .wizardStepLine {
-  /* Fixed equal segments — whole stepper centers as one unit L/R */
   flex: 0 0 4rem;
   width: 4rem;
   max-width: 4rem;
   height: 3px;
-  /* Align with circle center: half of 2.15rem − half of 3px */
   margin: calc(1.075rem - 1.5px) 0.55rem 0;
   background: #e2e8ee;
   border-radius: 999px;
@@ -385,9 +383,9 @@
 }
 
 .wizardError {
-  margin: 0 1.75rem;
+  margin: var(--modal-gap-sm) var(--modal-pad-x) 0;
   padding: 0.7rem 0.9rem;
-  border-radius: 10px;
+  border-radius: var(--modal-control-radius);
   background: #fff1f0;
   color: #b42318;
   border: 1px solid #f0c0bc;
@@ -402,7 +400,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 1rem 1.75rem 1.25rem;
+  padding: var(--modal-pad-y) var(--modal-pad-x);
 }
 
 .wizardPanel {
@@ -426,42 +424,73 @@
 }
 
 .wizardPanelLead {
-  margin: 0 0 1.1rem;
+  margin: 0 0 var(--modal-gap);
   color: var(--color-muted-strong);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  line-height: var(--leading-snug);
 }
 
 .wizardGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.95rem 1rem;
+  gap: var(--modal-gap) var(--modal-gap);
+  align-items: start;
 }
 
 .wizardField {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.88rem;
+  gap: var(--modal-gap-xs);
+  font-size: 0.86rem;
+  font-weight: var(--font-medium);
   color: var(--color-muted-strong);
+  min-width: 0;
+}
+
+.wizardField > span,
+.wizardField > .contactBlockTitle {
+  line-height: var(--leading-tight);
 }
 
 .wizardFieldFull {
   grid-column: 1 / -1;
 }
 
+.wizardSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--modal-gap-sm);
+  padding: var(--modal-gap);
+  border: 1px solid var(--modal-border);
+  border-radius: var(--modal-section-radius);
+  background: var(--modal-soft-bg);
+}
+
 .contactBlock {
-  gap: 0.55rem;
+  gap: var(--modal-gap-sm);
 }
 
 .contactBlockTitle {
-  font-size: 0.88rem;
+  font-size: 0.86rem;
+  font-weight: var(--font-medium);
   color: var(--color-muted-strong);
+  line-height: var(--leading-tight);
+}
+
+.contactOptionalHint {
+  font-weight: var(--font-regular);
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+.facilityContactBlock {
+  margin-top: 0;
 }
 
 .contactFields {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.75rem 0.85rem;
+  gap: var(--modal-gap-sm) var(--modal-gap);
 }
 
 .contactFields .wizardField {
@@ -471,11 +500,13 @@
 .wizardField input,
 .wizardField select,
 .wizardField textarea {
-  padding: 0.75rem 0.85rem;
-  border: 1px solid #d5dde5;
-  border-radius: 10px;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--modal-control-border);
+  border-radius: var(--modal-control-radius);
   font-family: inherit;
   font-size: 0.95rem;
+  font-weight: var(--font-regular);
   color: var(--color-text);
   background: #fff;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -486,14 +517,15 @@
 .wizardField textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0.12);
+  box-shadow: var(--modal-focus-ring);
 }
 
 .otherInput {
-  margin-top: 0.45rem;
-  padding: 0.75rem 0.85rem;
-  border: 1px solid #d5dde5;
-  border-radius: 10px;
+  margin-top: var(--modal-gap-xs);
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--modal-control-border);
+  border-radius: var(--modal-control-radius);
   font-family: inherit;
   font-size: 0.95rem;
   color: var(--color-text);
@@ -503,7 +535,7 @@
 .otherInput:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0.12);
+  box-shadow: var(--modal-focus-ring);
 }
 
 .otherInput[hidden] {
@@ -513,13 +545,13 @@
 .wizardHint {
   font-size: 0.8rem;
   color: #9aa5b1;
-  margin: 0.75rem 0 0;
+  margin: var(--modal-gap-sm) 0 0;
 }
 
 .choiceChips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: var(--modal-gap-xs);
 }
 
 .choiceChip {
@@ -624,7 +656,7 @@
 
 .imagePicker {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
@@ -633,17 +665,24 @@
 }
 
 .imagePickItem {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  list-style: none;
+}
+
+.imagePickThumb {
   position: relative;
   aspect-ratio: 4 / 3;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--card-border, #dde5ec);
-  padding: 0;
   background: #edf1f4;
-  list-style: none;
 }
 
-.imagePickItem img {
+.imagePickThumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -674,39 +713,72 @@
   background: rgba(180, 35, 24, 0.92);
 }
 
+.imagePickFacility {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.imagePickFacilityLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-muted-strong);
+  white-space: nowrap;
+}
+
+.imagePickFacilitySelect {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d5dde5;
+  border-radius: 10px;
+  padding: 0.4rem 0.55rem;
+  font: inherit;
+  font-size: 0.82rem;
+  background: #fff;
+  color: var(--color-text);
+}
+
+.imagePickFacilitySelect:focus {
+  outline: none;
+  border-color: var(--color-primary-open);
+  box-shadow: 0 0 0 3px rgba(6, 131, 139, 0.12);
+}
+
 
 .locationCard {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
-  gap: 1rem;
-  padding: 1.25rem;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #f3f7fa 0%, #eef5f6 100%);
-  border: 1px solid #dde7ee;
+  gap: var(--modal-gap);
+  padding: var(--modal-gap);
+  border-radius: var(--modal-section-radius);
+  background: linear-gradient(135deg, var(--modal-soft-bg-2) 0%, #eef5f6 100%);
+  border: 1px solid var(--modal-border);
 }
 
 .locationCardText h3 {
-  margin: 0 0 0.4rem;
+  margin: 0 0 var(--modal-gap-xs);
   font-size: 1.05rem;
+  font-weight: var(--font-semibold);
   color: var(--color-text);
 }
 
 .locationCardText p {
-  margin: 0 0 1rem;
+  margin: 0 0 var(--modal-gap);
   color: var(--color-muted-strong);
   font-size: 0.9rem;
-  line-height: 1.45;
+  line-height: var(--leading-snug);
 }
 
 .wizardMapBtn {
   border: none;
-  border-radius: 10px;
-  padding: 0.75rem 1.1rem;
+  border-radius: var(--modal-control-radius);
+  padding: 0.7rem 1.1rem;
   background: var(--color-primary);
   color: #fff;
   font-family: inherit;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: var(--font-medium);
   cursor: pointer;
 }
 
@@ -717,15 +789,15 @@
 .locationCoords {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: var(--modal-gap-sm);
   justify-content: center;
 }
 
 .locationStatus {
-  margin: 1rem 0 0;
+  margin: var(--modal-gap) 0 0;
   padding: 0.7rem 0.9rem;
-  border-radius: 10px;
-  background: #f5f7f9;
+  border-radius: var(--modal-control-radius);
+  background: var(--modal-soft-bg);
   color: var(--color-muted-strong);
   font-size: 0.9rem;
 }
@@ -741,13 +813,13 @@
 }
 
 .locationAreaAuto {
-  margin: 0.55rem 0 0;
-  padding: 0.55rem 0.85rem;
-  border-radius: 10px;
+  margin: var(--modal-gap-sm) 0 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--modal-control-radius);
   background: #eef3f8;
   color: var(--color-muted-strong);
   font-size: 0.88rem;
-  font-weight: 550;
+  font-weight: var(--font-medium);
 }
 
 .locationAreaAuto.is-ready {
@@ -755,13 +827,164 @@
   color: #1f4f7a;
 }
 
+.waypointFacilitiesBlock {
+  margin-top: 0;
+}
+
+.waypointFacilitiesHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--modal-gap-sm);
+  margin: 0;
+}
+
+.waypointFacilitiesHint {
+  margin: 0;
+  color: var(--color-muted-strong);
+  font-size: 0.84rem;
+  line-height: var(--leading-snug);
+}
+
+.waypointAddBtn {
+  border: 1px solid var(--modal-control-border);
+  background: #fff;
+  color: var(--color-primary);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.waypointAddBtn:hover {
+  background: #e7f2f8;
+  border-color: var(--color-primary);
+}
+
+.waypointFacilitiesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--modal-gap-sm);
+}
+
+.waypointFacilityItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--modal-gap-sm);
+  padding: var(--modal-gap-sm);
+  border: 1px solid var(--modal-border);
+  border-radius: var(--modal-control-radius);
+  background: #fff;
+}
+
+.waypointFacilityIndex {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #e7f2f8;
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: var(--font-bold);
+}
+
+.waypointFacilityTypeWrap {
+  display: grid;
+  gap: var(--modal-gap-xs);
+  min-width: 0;
+}
+
+.waypointFacilityType {
+  width: 100%;
+  border: 1px solid var(--modal-control-border);
+  border-radius: var(--modal-control-radius);
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  background: #fff;
+}
+
+.waypointFacilityType:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--modal-focus-ring);
+}
+
+.waypointFacilityTypeOther {
+  width: 100%;
+}
+
+.waypointFacilityRemove {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-muted-strong);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.waypointFacilityRemove:hover:not(:disabled) {
+  background: #fdeceb;
+  color: #a33b32;
+}
+
+.waypointFacilityRemove:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.facilityEditorTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--modal-gap-xs);
+  margin: 0 0 var(--modal-gap);
+}
+
+.facilityEditorTab {
+  border: 1px solid var(--modal-control-border);
+  background: #fff;
+  color: var(--color-text);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.facilityEditorTab:hover {
+  border-color: #b9c6d3;
+  background: var(--modal-soft-bg);
+}
+
+.facilityEditorTab.is-active {
+  background: #e7f2f8;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.facilityEditorGrid {
+  margin-top: 0;
+}
+
 .wizardFooter {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.75rem 1.35rem;
-  border-top: 1px solid #eceff2;
-  background: #fafbfc;
+  gap: var(--modal-gap-sm);
+  padding: var(--modal-gap) var(--modal-pad-x) var(--modal-pad-y);
+  border-top: 1px solid var(--modal-border);
+  background: var(--modal-soft-bg);
+  flex-shrink: 0;
 }
 
 .wizardFooterSpacer {
@@ -770,13 +993,13 @@
 
 .wizardBtn {
   min-width: 7.5rem;
-  padding: 0.75rem 1.2rem;
-  border-radius: 10px;
-  border: none;
+  padding: 0.7rem 1.15rem;
+  border-radius: var(--modal-control-radius);
+  border: 1px solid transparent;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: var(--font-medium);
 }
 
 .wizardBtn[hidden] {
@@ -795,7 +1018,7 @@
 .wizardBtnGhost {
   background: #fff;
   color: var(--color-primary);
-  border: 1px solid #d5dde5;
+  border: 1px solid var(--modal-control-border);
 }
 
 .wizardBtnGhost:hover {
@@ -911,7 +1134,7 @@
   }
 
   .wizardSteps {
-    padding: 1rem 1.25rem;
+    padding: var(--modal-gap-sm) var(--modal-pad-x);
   }
 
   .wizardStep {

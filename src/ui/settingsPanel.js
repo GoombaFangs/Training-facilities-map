@@ -34,7 +34,7 @@ let mapLayoutDraft = {
   southBelowLat: String(DEFAULT_MAP_REGION_LAYOUT.southBelowLat),
 };
 /** @type {import('../data/optionCatalogs.js').CatalogKey} */
-let activeKey = 'locations';
+let activeKey = 'facilityTypes';
 /** @type {'options' | 'users' | 'mapLayout'} */
 let activeTab = 'options';
 let isClosing = false;

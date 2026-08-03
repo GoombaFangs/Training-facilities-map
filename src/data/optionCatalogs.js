@@ -1,8 +1,6 @@
 import {
   FACILITY_TYPES,
-  AREAS,
   FACILITY_STATUSES,
-  LOCATIONS,
   TRAINING_TYPE_OPTIONS,
   TRAINING_FRAMES,
   TRAINING_OPTIONS,
@@ -12,14 +10,13 @@ import { loadCustomOptions, mergeUnique } from './customOptions.js';
 
 const STORAGE_KEY = 'training-facilities-option-catalogs';
 
-/** @typedef {'locations' | 'areas' | 'statuses' | 'facilityTypes' | 'trainingTypes' | 'trainingFrames' | 'trainingOptions'} CatalogKey */
+/** Editable option lists shown in settings — synced with selectable form fields. */
+/** @typedef {'statuses' | 'facilityTypes' | 'trainingTypes' | 'trainingFrames' | 'trainingOptions'} CatalogKey */
 
 /** @type {CatalogKey[]} */
 export const CATALOG_KEYS = [
-  'locations',
-  'areas',
-  'statuses',
   'facilityTypes',
+  'statuses',
   'trainingTypes',
   'trainingFrames',
   'trainingOptions',
@@ -27,10 +24,8 @@ export const CATALOG_KEYS = [
 
 /** @type {Record<CatalogKey, string>} */
 export const CATALOG_LABELS = {
-  locations: 'מיקום / בסיס',
-  areas: 'אזור בארץ',
-  statuses: 'סטטוס',
   facilityTypes: 'סוג מתקן',
+  statuses: 'סטטוס',
   trainingTypes: 'סוג אימון',
   trainingFrames: 'מסגרת מתאמנת',
   trainingOptions: 'סוגי אימון',
@@ -41,10 +36,8 @@ export const CATALOG_LABELS = {
  */
 export function defaultOptionCatalogs() {
   return {
-    locations: [...LOCATIONS],
-    areas: AREAS.map((a) => a.value),
-    statuses: FACILITY_STATUSES.map((s) => s.value),
     facilityTypes: FACILITY_TYPES.map((t) => t.value),
+    statuses: FACILITY_STATUSES.map((s) => s.value),
     trainingTypes: [...TRAINING_TYPE_OPTIONS],
     trainingFrames: [...TRAINING_FRAMES],
     trainingOptions: [...TRAINING_OPTIONS],
@@ -103,7 +96,6 @@ function seedFromDefaultsAndLegacyCustoms() {
   const catalogs = defaultOptionCatalogs();
   const legacy = loadCustomOptions();
 
-  catalogs.locations = mergeUnique(catalogs.locations, legacy.locations);
   catalogs.facilityTypes = mergeUnique(catalogs.facilityTypes, legacy.facilityTypes);
   catalogs.trainingFrames = mergeUnique(catalogs.trainingFrames, legacy.trainingFrames);
   catalogs.trainingOptions = mergeUnique(catalogs.trainingOptions, legacy.trainingOptions);
@@ -141,7 +133,6 @@ export function getCatalogList(key) {
 /**
  * Append new values to catalog lists (used by “שמור ערכים חדשים”).
  * @param {Partial<{
- *   locations: string[],
  *   facilityTypes: string[],
  *   trainingFrames: string[],
  *   trainingOptions: string[],
@@ -155,7 +146,7 @@ export function appendToOptionCatalogs(additions) {
   let addedCount = 0;
 
   /** @type {CatalogKey[]} */
-  const simpleKeys = ['locations', 'facilityTypes', 'trainingFrames', 'trainingOptions'];
+  const simpleKeys = ['facilityTypes', 'trainingFrames', 'trainingOptions'];
   for (const key of simpleKeys) {
     const extra = additions[key] ?? [];
     const before = current[key].length;
@@ -217,5 +208,5 @@ export function getFacilityTypeCssClass(value) {
  */
 export function getStatusCssClass(value) {
   const migrated = migrateStatusValue(value);
-  return FACILITY_STATUSES.find((s) => s.value === migrated)?.cssClass ?? 'statusInactive';
+  return FACILITY_STATUSES.find((s) => s.value === migrated)?.cssClass ?? 'statusCustom';
 }

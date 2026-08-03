@@ -39,14 +39,40 @@ let adminMapCreateBound = false;
 let pickingFromForm = false;
 let pickEscapeHandler = null;
 let currentStep = 1;
-const TOTAL_STEPS = 3;
-/** @type {string[]} */
+const TOTAL_STEPS = 4;
+/**
+ * Shared image gallery for step 4 — each image is assigned to a facility.
+ * @type {{ src: string, facilityLocalId: string }[]}
+ */
 let uploadedImages = [];
 let saveCustomsResetTimer = 0;
 let isPinDropping = false;
 let imageUploadBound = false;
 let isClosingForm = false;
 let formCloseTimer = 0;
+
+/**
+ * @typedef {{
+ *   localId: string,
+ *   name: string,
+ *   statusOfFacility: string,
+ *   locationOfFacility: string,
+ *   typeOfFacility: string,
+ *   specificTypeOfFacility: string,
+ *   trainingFrame: string,
+ *   trainingOptions: string[],
+ *   contactName: string,
+ *   contactRank: string,
+ *   contactPhone: string,
+ *   comments: string,
+ *   imgArr: string[],
+ * }} FacilityDraft
+ */
+
+/** @type {FacilityDraft[]} */
+let draftFacilities = [];
+let activeFacilityIndex = 0;
+let facilityDraftSeq = 1;
 
 /**
  * @param {{ onSaved: (meta?: { id: string, isNew: boolean }) => void }} options
@@ -69,21 +95,23 @@ export function initFacilityForm({ onSaved: savedCb }) {
   document.getElementById('wizardNext').addEventListener('click', goNext);
   document.getElementById('wizardBack').addEventListener('click', goBack);
   document.getElementById('wizardSaveCustoms').addEventListener('click', onSaveCustomValues);
-  bindCoordinateInputs();
-  document.getElementById('formTypeOfFacility').addEventListener('change', () => {
-    syncOtherInput(document.getElementById('formTypeOfFacility'));
-    refreshSpecificTypes();
+  document.getElementById('addFacilityToWaypointBtn')?.addEventListener('click', () => {
+    syncFacilityListFromDom();
+    draftFacilities.push(createEmptyFacilityDraft());
+    renderWaypointFacilitiesList();
   });
+  bindCoordinateInputs();
 
   document.querySelectorAll('select[data-other-for]').forEach((select) => {
-    if (select.id === 'formTypeOfFacility') return;
     select.addEventListener('change', () => syncOtherInput(select));
   });
 
   document.querySelectorAll('.wizardStep').forEach((stepBtn) => {
     stepBtn.addEventListener('click', () => {
       const target = Number(stepBtn.dataset.step);
+      if (target === currentStep) return;
       if (target < currentStep || validateUpTo(target - 1)) {
+        prepareLeaveStep(currentStep);
         goToStep(target);
       }
     });
@@ -96,8 +124,8 @@ export function initFacilityForm({ onSaved: savedCb }) {
 
 export function openCreateForm(coords = null) {
   editingId = null;
-  document.getElementById('facilityFormTitle').textContent = 'הוספת מתקן';
-  document.getElementById('wizardSave').textContent = 'צור מתקן';
+  document.getElementById('facilityFormTitle').textContent = 'הוספת נקודת ציון';
+  document.getElementById('wizardSave').textContent = 'צור נקודת ציון';
   resetFormFields();
 
   if (coords) {
@@ -115,12 +143,11 @@ export function openEditForm(feature) {
   if (!isManagedFacility(feature?.properties?.id)) return;
 
   const props = feature.properties;
-  const type = props.TypesOfFacilities?.[0] ?? {};
   const [lng, lat] = feature.geometry.coordinates;
 
   editingId = props.id;
-  document.getElementById('facilityFormTitle').textContent = 'עריכת מתקן';
-  document.getElementById('wizardSave').textContent = 'עדכן מתקן';
+  document.getElementById('facilityFormTitle').textContent = 'עריכת נקודת ציון';
+  document.getElementById('wizardSave').textContent = 'עדכן נקודת ציון';
 
   refillAllOptionLists();
 
@@ -129,19 +156,17 @@ export function openEditForm(feature) {
   document.getElementById('formPhone').value = props.phoneOfFacility ?? '';
   document.getElementById('formContactName').value = props.contactNameOfFacility ?? '';
   document.getElementById('formContactRole').value = props.contactRoleOfFacility ?? '';
-  document.getElementById('formStatus').value =
-    props.statusOfFacility ?? getMergedStatuses()[0] ?? FACILITY_STATUSES[0].value;
   setCoordinateInput('formLat', Number(lat));
   setCoordinateInput('formLng', Number(lng));
-  document.getElementById('formComments').value = type.comments ?? '';
 
-  setSelectOrOther(document.getElementById('formLocation'), props.locationOfFacility);
-  setSelectOrOther(document.getElementById('formTypeOfFacility'), type.typeOfFacility);
-  refreshSpecificTypes(type.specificTypeOfFacility);
-  setSelectOrOther(document.getElementById('formTrainingFrame'), type.trainingFrame);
-
-  setSelectedTrainingOptions(type.trainingOptions ?? []);
-  setUploadedImages(type.imgArr ?? []);
+  draftFacilities = (props.TypesOfFacilities ?? []).map((entry, index) =>
+    facilityEntryToDraft(entry, index, props),
+  );
+  if (draftFacilities.length === 0) {
+    draftFacilities = [createEmptyFacilityDraft()];
+  }
+  activeFacilityIndex = 0;
+  renderWaypointFacilitiesList();
 
   showForm();
 }
@@ -225,9 +250,8 @@ function finishCloseForm(backdrop) {
 function resetFormFields() {
   refillAllOptionLists();
   document.getElementById('facilityForm').reset();
-  document.getElementById('formTypeOfFacility').selectedIndex = 0;
   document.getElementById('formStatus').selectedIndex = 0;
-  document.getElementById('formLocation').selectedIndex = 0;
+  document.getElementById('formLocation').value = '';
   document.getElementById('formTrainingFrame').selectedIndex = 0;
   document.querySelectorAll('.otherInput').forEach((input) => {
     input.value = '';
@@ -236,11 +260,332 @@ function resetFormFields() {
   refreshSpecificTypes();
   setSelectedTrainingOptions([]);
   setUploadedImages([]);
+  draftFacilities = [createEmptyFacilityDraft()];
+  activeFacilityIndex = 0;
+  renderWaypointFacilitiesList();
   resetSaveCustomsButton();
 }
 
-function getMergedLocations() {
-  return getCatalogList('locations');
+/**
+ * @param {string} [typeOfFacility]
+ * @returns {FacilityDraft}
+ */
+function createEmptyFacilityDraft(typeOfFacility) {
+  const types = getMergedFacilityTypes();
+  const frames = getMergedTrainingFrames();
+  const statuses = getMergedStatuses();
+  const type = String(typeOfFacility || types[0] || '').trim();
+  return {
+    localId: `fac_${Date.now()}_${facilityDraftSeq++}`,
+    name: type || `מתקן ${draftFacilities.length + 1}`,
+    statusOfFacility: statuses[0] || FACILITY_STATUSES[0]?.value || 'פעיל',
+    locationOfFacility: '',
+    typeOfFacility: type,
+    specificTypeOfFacility: '',
+    trainingFrame: frames[0] || '',
+    trainingOptions: [],
+    contactName: '',
+    contactRank: '',
+    contactPhone: '',
+    comments: '',
+    imgArr: [],
+  };
+}
+
+/**
+ * @param {FacilityDraft} facility
+ * @param {number} index
+ * @returns {string}
+ */
+function getFacilityDraftLabel(facility, index) {
+  const type = String(facility?.typeOfFacility || '').trim();
+  if (type) return type;
+  const name = String(facility?.name || '').trim();
+  if (name) return name;
+  return `מתקן ${index + 1}`;
+}
+
+/**
+ * @param {FacilityDraft} facility
+ * @param {string} typeValue
+ * @param {number} index
+ */
+function applyFacilityType(facility, typeValue, index) {
+  const value = String(typeValue || '').trim();
+  facility.typeOfFacility = value;
+  facility.name = value || `מתקן ${index + 1}`;
+}
+
+/**
+ * @param {object} entry
+ * @param {number} index
+ * @param {object} [waypointProps]
+ * @returns {FacilityDraft}
+ */
+function facilityEntryToDraft(entry, index, waypointProps = {}) {
+  const options = Array.isArray(entry?.trainingOptions)
+    ? entry.trainingOptions.map((item) => String(item).trim()).filter(Boolean)
+    : String(entry?.trainingOptions ?? '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+  return {
+    localId: `fac_edit_${index}_${facilityDraftSeq++}`,
+    name: String(entry?.name || entry?.typeOfFacility || `מתקן ${index + 1}`).trim(),
+    statusOfFacility: String(
+      entry?.statusOfFacility || waypointProps.statusOfFacility || FACILITY_STATUSES[0]?.value || 'פעיל',
+    ),
+    locationOfFacility: String(
+      entry?.locationOfFacility || waypointProps.locationOfFacility || '',
+    ),
+    typeOfFacility: String(entry?.typeOfFacility || entry?.name || '').trim(),
+    specificTypeOfFacility: String(entry?.specificTypeOfFacility ?? ''),
+    trainingFrame: String(entry?.trainingFrame ?? ''),
+    trainingOptions: options,
+    contactName: String(entry?.contactName ?? ''),
+    contactRank: String(entry?.contactRank ?? ''),
+    contactPhone: String(entry?.contactPhone ?? ''),
+    comments: String(entry?.comments ?? ''),
+    imgArr: Array.isArray(entry?.imgArr) ? entry.imgArr.filter(Boolean) : [],
+  };
+}
+
+/**
+ * @param {string} selectedValue
+ * @returns {string}
+ */
+function buildFacilityTypeOptionsHtml(selectedValue) {
+  const types = getMergedFacilityTypes();
+  const selected = String(selectedValue || '').trim();
+  const known = selected !== '' && types.includes(selected);
+  const options = types.map(
+    (value) =>
+      `<option value="${escapeAttr(value)}"${known && value === selected ? ' selected' : ''}>${escapeHtml(value)}</option>`,
+  );
+  const useOther = selected !== '' && !known;
+  options.push(
+    `<option value="${OTHER_VALUE}"${useOther ? ' selected' : ''}>${OTHER_LABEL}</option>`,
+  );
+  return options.join('');
+}
+
+function syncFacilityListFromDom() {
+  const list = document.getElementById('waypointFacilitiesList');
+  if (!list) return;
+  list.querySelectorAll('.waypointFacilityItem').forEach((row) => {
+    const index = Number(row.dataset.index);
+    const select = row.querySelector('.waypointFacilityType');
+    const other = row.querySelector('.waypointFacilityTypeOther');
+    if (
+      !Number.isInteger(index) ||
+      !draftFacilities[index] ||
+      !(select instanceof HTMLSelectElement)
+    ) {
+      return;
+    }
+    const value =
+      select.value === OTHER_VALUE
+        ? other instanceof HTMLInputElement
+          ? other.value.trim()
+          : ''
+        : select.value;
+    applyFacilityType(draftFacilities[index], value, index);
+  });
+}
+
+function renderWaypointFacilitiesList() {
+  const list = document.getElementById('waypointFacilitiesList');
+  if (!list) return;
+
+  list.innerHTML = draftFacilities
+    .map((facility, index) => {
+      const selected = String(facility.typeOfFacility || '').trim();
+      const types = getMergedFacilityTypes();
+      const isOther = selected !== '' && !types.includes(selected);
+      return `
+      <li class="waypointFacilityItem" data-index="${index}">
+        <span class="waypointFacilityIndex">${index + 1}</span>
+        <div class="waypointFacilityTypeWrap">
+          <select
+            class="waypointFacilityType"
+            aria-label="סוג מתקן ${index + 1}"
+          >${buildFacilityTypeOptionsHtml(selected)}</select>
+          <input
+            type="text"
+            class="waypointFacilityTypeOther otherInput"
+            value="${escapeAttr(isOther ? selected : '')}"
+            placeholder="הזינו סוג מתקן אחר"
+            aria-label="סוג מתקן אחר ${index + 1}"
+            ${isOther ? '' : 'hidden'}
+          />
+        </div>
+        <button
+          type="button"
+          class="waypointFacilityRemove"
+          data-index="${index}"
+          aria-label="הסר מתקן ${index + 1}"
+          ${draftFacilities.length <= 1 ? 'disabled' : ''}
+        >×</button>
+      </li>
+    `;
+    })
+    .join('');
+
+  list.querySelectorAll('.waypointFacilityType').forEach((select) => {
+    select.addEventListener('change', () => {
+      const row = select.closest('.waypointFacilityItem');
+      const index = Number(row?.dataset.index);
+      if (!Number.isInteger(index) || !draftFacilities[index]) return;
+      const other = row.querySelector('.waypointFacilityTypeOther');
+      if (other instanceof HTMLInputElement) {
+        const isOther = select.value === OTHER_VALUE;
+        other.hidden = !isOther;
+        if (isOther) {
+          other.focus();
+          applyFacilityType(draftFacilities[index], other.value.trim(), index);
+        } else {
+          other.value = '';
+          applyFacilityType(draftFacilities[index], select.value, index);
+        }
+      } else {
+        applyFacilityType(draftFacilities[index], select.value, index);
+      }
+    });
+  });
+
+  list.querySelectorAll('.waypointFacilityTypeOther').forEach((input) => {
+    input.addEventListener('input', () => {
+      const row = input.closest('.waypointFacilityItem');
+      const index = Number(row?.dataset.index);
+      if (!Number.isInteger(index) || !draftFacilities[index]) return;
+      applyFacilityType(draftFacilities[index], input.value.trim(), index);
+    });
+  });
+
+  list.querySelectorAll('.waypointFacilityRemove').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const index = Number(btn.dataset.index);
+      if (!Number.isInteger(index) || draftFacilities.length <= 1) return;
+      syncFacilityListFromDom();
+      draftFacilities.splice(index, 1);
+      if (activeFacilityIndex >= draftFacilities.length) {
+        activeFacilityIndex = draftFacilities.length - 1;
+      }
+      renderWaypointFacilitiesList();
+    });
+  });
+}
+
+function renderFacilityEditorTabs(containerId = 'facilityEditorTabs') {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.innerHTML = draftFacilities
+    .map(
+      (facility, index) => `
+      <button
+        type="button"
+        class="facilityEditorTab${index === activeFacilityIndex ? ' is-active' : ''}"
+        data-index="${index}"
+        role="tab"
+        aria-selected="${index === activeFacilityIndex ? 'true' : 'false'}"
+      >${escapeHtml(getFacilityDraftLabel(facility, index))}</button>
+    `,
+    )
+    .join('');
+
+  container.querySelectorAll('.facilityEditorTab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const index = Number(btn.dataset.index);
+      if (!Number.isInteger(index) || index === activeFacilityIndex) return;
+      if (currentStep === 3) saveFacilityEditorToDraft();
+      activeFacilityIndex = index;
+      if (currentStep === 3) {
+        renderFacilityEditorTabs('facilityEditorTabs');
+        loadFacilityEditorFromDraft();
+      }
+    });
+  });
+}
+
+function saveFacilityEditorToDraft() {
+  const facility = draftFacilities[activeFacilityIndex];
+  if (!facility) return;
+
+  facility.statusOfFacility = document.getElementById('formStatus').value;
+  facility.locationOfFacility = document.getElementById('formLocation').value.trim();
+  facility.specificTypeOfFacility = getSelectOrOtherValue(
+    document.getElementById('formSpecificType'),
+  );
+  facility.trainingFrame = getSelectOrOtherValue(
+    document.getElementById('formTrainingFrame'),
+  );
+  facility.trainingOptions = getSelectedTrainingOptions();
+  facility.contactName = document.getElementById('formFacilityContactName').value.trim();
+  facility.contactRank = document.getElementById('formFacilityContactRank').value.trim();
+  facility.contactPhone = document.getElementById('formFacilityContactPhone').value.trim();
+  facility.comments = document.getElementById('formComments').value;
+}
+
+function loadFacilityEditorFromDraft() {
+  const facility = draftFacilities[activeFacilityIndex];
+  if (!facility) return;
+
+  document.getElementById('formStatus').value =
+    facility.statusOfFacility || getMergedStatuses()[0] || FACILITY_STATUSES[0]?.value || 'פעיל';
+  document.getElementById('formLocation').value = facility.locationOfFacility || '';
+  refreshSpecificTypes(facility.specificTypeOfFacility);
+  setSelectOrOther(document.getElementById('formTrainingFrame'), facility.trainingFrame);
+  setSelectedTrainingOptions(facility.trainingOptions ?? []);
+  document.getElementById('formFacilityContactName').value = facility.contactName ?? '';
+  document.getElementById('formFacilityContactRank').value = facility.contactRank ?? '';
+  document.getElementById('formFacilityContactPhone').value = facility.contactPhone ?? '';
+  document.getElementById('formComments').value = facility.comments ?? '';
+}
+
+/** Flatten draft facility images into the shared gallery. */
+function loadImagesFromDraftFacilities() {
+  const items = [];
+  for (const facility of draftFacilities) {
+    for (const src of facility.imgArr ?? []) {
+      if (!src) continue;
+      items.push({ src, facilityLocalId: facility.localId });
+    }
+  }
+  uploadedImages = items;
+  renderUploadedImages();
+}
+
+/** Write gallery images back into each draft facility's imgArr. */
+function syncImagesToDraftFacilities() {
+  const byFacility = new Map(draftFacilities.map((facility) => [facility.localId, []]));
+  const fallbackId = draftFacilities[0]?.localId ?? '';
+
+  for (const item of uploadedImages) {
+    const key = byFacility.has(item.facilityLocalId) ? item.facilityLocalId : fallbackId;
+    if (!key) continue;
+    const list = byFacility.get(key);
+    if (list.length >= MAX_UPLOAD_IMAGES) continue;
+    list.push(item.src);
+  }
+
+  for (const facility of draftFacilities) {
+    facility.imgArr = byFacility.get(facility.localId) ?? [];
+  }
+}
+
+function getImageUploadLimit() {
+  return Math.max(MAX_UPLOAD_IMAGES, draftFacilities.length * MAX_UPLOAD_IMAGES);
+}
+
+/**
+ * @param {number} step
+ */
+function prepareLeaveStep(step) {
+  if (step === 2) syncFacilityListFromDom();
+  if (step === 3) saveFacilityEditorToDraft();
+  if (step === 4) syncImagesToDraftFacilities();
 }
 
 function getMergedFacilityTypes() {
@@ -268,16 +613,10 @@ function getMergedSpecificTypes(_facilityType) {
 
 function refillAllOptionLists() {
   fillSelect(
-    document.getElementById('formTypeOfFacility'),
-    getMergedFacilityTypes(),
-    true,
-  );
-  fillSelect(
     document.getElementById('formStatus'),
     getMergedStatuses(),
     false,
   );
-  fillSelect(document.getElementById('formLocation'), getMergedLocations(), true);
   fillSelect(
     document.getElementById('formTrainingFrame'),
     getMergedTrainingFrames(),
@@ -301,19 +640,15 @@ export function refreshFacilityFormOptions() {
  * Keep current form values while refreshing option lists after saving customs.
  */
 function refreshOptionListsPreservingValues() {
+  if (currentStep === 3) saveFacilityEditorToDraft();
+  if (currentStep === 4) syncImagesToDraftFacilities();
+
   const snapshot = {
-    location: getSelectOrOtherValue(document.getElementById('formLocation')),
-    status: document.getElementById('formStatus').value,
-    type: getSelectOrOtherValue(document.getElementById('formTypeOfFacility')),
-    specific: getSelectOrOtherValue(document.getElementById('formSpecificType')),
-    frame: getSelectOrOtherValue(document.getElementById('formTrainingFrame')),
-    training: getSelectedTrainingOptions(),
     name: document.getElementById('formName').value,
     unit: document.getElementById('formUnit').value,
     phone: document.getElementById('formPhone').value,
     contactName: document.getElementById('formContactName').value,
     contactRole: document.getElementById('formContactRole').value,
-    comments: document.getElementById('formComments').value,
     lat: document.getElementById('formLat').value,
     lng: document.getElementById('formLng').value,
   };
@@ -325,16 +660,17 @@ function refreshOptionListsPreservingValues() {
   document.getElementById('formPhone').value = snapshot.phone;
   document.getElementById('formContactName').value = snapshot.contactName;
   document.getElementById('formContactRole').value = snapshot.contactRole;
-  document.getElementById('formComments').value = snapshot.comments;
   document.getElementById('formLat').value = snapshot.lat;
   document.getElementById('formLng').value = snapshot.lng;
-  document.getElementById('formStatus').value = snapshot.status;
 
-  setSelectOrOther(document.getElementById('formLocation'), snapshot.location);
-  setSelectOrOther(document.getElementById('formTypeOfFacility'), snapshot.type);
-  refreshSpecificTypes(snapshot.specific);
-  setSelectOrOther(document.getElementById('formTrainingFrame'), snapshot.frame);
-  setSelectedTrainingOptions(snapshot.training);
+  if (currentStep === 2) {
+    renderWaypointFacilitiesList();
+  } else if (currentStep === 3) {
+    loadFacilityEditorFromDraft();
+    renderFacilityEditorTabs('facilityEditorTabs');
+  } else if (currentStep === 4) {
+    loadImagesFromDraftFacilities();
+  }
 }
 
 /**
@@ -414,11 +750,9 @@ function getSelectOrOtherValue(select) {
 }
 
 function refreshSpecificTypes(preferredValue) {
-  const typeSelect = document.getElementById('formTypeOfFacility');
-  const facilityType =
-    typeSelect.value === OTHER_VALUE
-      ? document.getElementById('formTypeOther').value.trim()
-      : typeSelect.value;
+  const facilityType = String(
+    draftFacilities[activeFacilityIndex]?.typeOfFacility || '',
+  ).trim();
 
   const specificSelect = document.getElementById('formSpecificType');
   const options = facilityType ? getMergedSpecificTypes(facilityType) : [];
@@ -515,8 +849,9 @@ function bindImageUpload() {
   if (!input || !zone) return;
 
   zone.addEventListener('click', () => {
-    if (uploadedImages.length >= MAX_UPLOAD_IMAGES) {
-      showError(`ניתן להעלות עד ${MAX_UPLOAD_IMAGES} תמונות`);
+    const limit = getImageUploadLimit();
+    if (uploadedImages.length >= limit) {
+      showError(`ניתן להעלות עד ${limit} תמונות`);
       return;
     }
     input.click();
@@ -556,20 +891,27 @@ async function addImageFiles(files) {
   if (!files.length) return;
   clearError();
 
-  const remaining = MAX_UPLOAD_IMAGES - uploadedImages.length;
+  const limit = getImageUploadLimit();
+  const remaining = limit - uploadedImages.length;
   if (remaining <= 0) {
-    showError(`ניתן להעלות עד ${MAX_UPLOAD_IMAGES} תמונות`);
+    showError(`ניתן להעלות עד ${limit} תמונות`);
     return;
   }
 
   const batch = files.slice(0, remaining);
   if (files.length > remaining) {
-    showError(`נוספו ${batch.length} תמונות בלבד (מגבלה: ${MAX_UPLOAD_IMAGES})`);
+    showError(`נוספו ${batch.length} תמונות בלבד (מגבלה: ${limit})`);
   }
+
+  const defaultFacilityId =
+    draftFacilities[activeFacilityIndex]?.localId || draftFacilities[0]?.localId || '';
 
   try {
     const dataUrls = await Promise.all(batch.map((file) => compressImageFile(file)));
-    uploadedImages = [...uploadedImages, ...dataUrls];
+    uploadedImages = [
+      ...uploadedImages,
+      ...dataUrls.map((src) => ({ src, facilityLocalId: defaultFacilityId })),
+    ];
     renderUploadedImages();
   } catch {
     showError('לא הצלחנו לקרוא את אחת התמונות. נסו קובץ אחר.');
@@ -609,10 +951,24 @@ function compressImageFile(file) {
 }
 
 /**
- * @param {string[]} images
+ * @param {{ src: string, facilityLocalId: string }[]} images
  */
 function setUploadedImages(images) {
-  uploadedImages = (images ?? []).filter(Boolean).slice(0, MAX_UPLOAD_IMAGES);
+  uploadedImages = (images ?? [])
+    .map((item) => {
+      if (typeof item === 'string') {
+        return {
+          src: item,
+          facilityLocalId: draftFacilities[0]?.localId || '',
+        };
+      }
+      return {
+        src: item.src,
+        facilityLocalId: item.facilityLocalId || draftFacilities[0]?.localId || '',
+      };
+    })
+    .filter((item) => item.src)
+    .slice(0, getImageUploadLimit());
   renderUploadedImages();
 }
 
@@ -621,21 +977,52 @@ function renderUploadedImages() {
   const zone = document.getElementById('formImgDropzone');
   if (!picker) return;
 
+  const facilityOptions = draftFacilities
+    .map(
+      (facility, index) =>
+        `<option value="${escapeAttr(facility.localId)}">${escapeHtml(
+          getFacilityDraftLabel(facility, index),
+        )}</option>`,
+    )
+    .join('');
+
   picker.innerHTML = uploadedImages
     .map(
-      (src, index) => `
-      <div class="imagePickItem" role="listitem">
-        <img src="${escapeAttr(src)}" alt="תמונה ${index + 1}" />
-        <button
-          type="button"
-          class="imagePickRemove"
-          data-index="${index}"
-          aria-label="הסר תמונה ${index + 1}"
-        >×</button>
+      (item, index) => `
+      <div class="imagePickItem" role="listitem" data-index="${index}">
+        <div class="imagePickThumb">
+          <img src="${escapeAttr(item.src)}" alt="תמונה ${index + 1}" />
+          <button
+            type="button"
+            class="imagePickRemove"
+            data-index="${index}"
+            aria-label="הסר תמונה ${index + 1}"
+          >×</button>
+        </div>
+        <label class="imagePickFacility">
+          <span class="imagePickFacilityLabel">מתקן</span>
+          <select class="imagePickFacilitySelect" data-index="${index}" aria-label="שיוך תמונה ${index + 1} למתקן">
+            ${facilityOptions}
+          </select>
+        </label>
       </div>
     `,
     )
     .join('');
+
+  picker.querySelectorAll('.imagePickFacilitySelect').forEach((select) => {
+    const index = Number(select.dataset.index);
+    if (!Number.isInteger(index) || !uploadedImages[index]) return;
+    select.value = uploadedImages[index].facilityLocalId;
+    if (![...select.options].some((option) => option.value === select.value)) {
+      select.selectedIndex = 0;
+      uploadedImages[index].facilityLocalId = select.value;
+    }
+    select.addEventListener('change', () => {
+      if (!uploadedImages[index]) return;
+      uploadedImages[index].facilityLocalId = select.value;
+    });
+  });
 
   picker.querySelectorAll('.imagePickRemove').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -648,20 +1035,18 @@ function renderUploadedImages() {
   });
 
   if (zone) {
-    zone.disabled = uploadedImages.length >= MAX_UPLOAD_IMAGES;
+    zone.disabled = uploadedImages.length >= getImageUploadLimit();
   }
-}
-
-function getUploadedImages() {
-  return [...uploadedImages];
 }
 
 function goNext() {
   if (!validateStep(currentStep)) return;
+  prepareLeaveStep(currentStep);
   if (currentStep < TOTAL_STEPS) goToStep(currentStep + 1);
 }
 
 function goBack() {
+  prepareLeaveStep(currentStep);
   if (currentStep > 1) goToStep(currentStep - 1);
 }
 
@@ -692,7 +1077,17 @@ function goToStep(step) {
   if (saveCustoms) saveCustoms.hidden = step !== TOTAL_STEPS;
 
   if (step !== TOTAL_STEPS) resetSaveCustomsButton();
-  if (step === 2) updateLocationStatus();
+
+  if (step === 1) {
+    updateLocationStatus();
+  } else if (step === 2) {
+    renderWaypointFacilitiesList();
+  } else if (step === 3) {
+    renderFacilityEditorTabs('facilityEditorTabs');
+    loadFacilityEditorFromDraft();
+  } else if (step === 4) {
+    loadImagesFromDraftFacilities();
+  }
 }
 
 function validateUpTo(step) {
@@ -706,9 +1101,22 @@ function validateStep(step) {
   clearError();
 
   if (step === 1) {
+    const lat = parseCoordinate(document.getElementById('formLat').value);
+    const lng = parseCoordinate(document.getElementById('formLng').value);
+    if (lat == null || lng == null) {
+      showError('יש לבחור מיקום על המפה או להזין קואורדינטות תקינות');
+      return false;
+    }
+    if (!isPointInIsrael(lat, lng)) {
+      showError('ניתן להציב נקודת ציון רק בתוך גבולות המדינה');
+      return false;
+    }
+  }
+
+  if (step === 2) {
     const name = document.getElementById('formName').value.trim();
     if (!name) {
-      showError('יש להזין שם מתקן כדי להמשיך');
+      showError('יש להזין שם נקודת ציון כדי להמשיך');
       document.getElementById('formName').focus();
       return false;
     }
@@ -717,20 +1125,43 @@ function validateStep(step) {
     const contactRole = document.getElementById('formContactRole').value.trim();
     const phone = document.getElementById('formPhone').value.trim();
     if (!contactName || !contactRole || !phone) {
-      showError('יש למלא יצירת קשר עם המתקן: שם, תפקיד וטלפון');
+      showError('יש למלא יצירת קשר עם הנקודה: שם, תפקיד וטלפון');
       if (!contactName) document.getElementById('formContactName').focus();
       else if (!contactRole) document.getElementById('formContactRole').focus();
       else document.getElementById('formPhone').focus();
       return false;
     }
 
+    syncFacilityListFromDom();
+    if (draftFacilities.length === 0) {
+      showError('יש להוסיף לפחות מתקן אחד לנקודת הציון');
+      return false;
+    }
+    const emptyType = draftFacilities.findIndex((facility) => !facility.typeOfFacility?.trim());
+    if (emptyType >= 0) {
+      showError(`יש לבחור סוג מתקן עבור מתקן מספר ${emptyType + 1}`);
+      return false;
+    }
+  }
+
+  if (step === 3) {
+    saveFacilityEditorToDraft();
+    for (let i = 0; i < draftFacilities.length; i++) {
+      const facility = draftFacilities[i];
+      if (!facility.typeOfFacility?.trim()) {
+        showError(
+          `יש לבחור סוג מתקן בשלב הפרטים עבור "${getFacilityDraftLabel(facility, i)}"`,
+        );
+        activeFacilityIndex = i;
+        goToStep(2);
+        return false;
+      }
+    }
+
     const selects = [
-      document.getElementById('formLocation'),
-      document.getElementById('formTypeOfFacility'),
       document.getElementById('formSpecificType'),
       document.getElementById('formTrainingFrame'),
     ];
-
     for (const select of selects) {
       if (select.value === OTHER_VALUE) {
         const otherValue = getSelectOrOtherValue(select);
@@ -746,19 +1177,6 @@ function validateStep(step) {
     if (otherToggle?.checked && !document.getElementById('formTrainingOther').value.trim()) {
       showError('בחירת "אחר" בסוגי אימון דורשת מילוי השדה שנפתח מתחת');
       document.getElementById('formTrainingOther').focus();
-      return false;
-    }
-  }
-
-  if (step === 2) {
-    const lat = parseCoordinate(document.getElementById('formLat').value);
-    const lng = parseCoordinate(document.getElementById('formLng').value);
-    if (lat == null || lng == null) {
-      showError('יש לבחור מיקום על המפה או להזין קואורדינטות תקינות');
-      return false;
-    }
-    if (!isPointInIsrael(lat, lng)) {
-      showError('ניתן להציב מתקן רק בתוך גבולות המדינה');
       return false;
     }
   }
@@ -856,38 +1274,27 @@ function bindCoordinateInputs() {
 function onSaveCustomValues() {
   clearError();
 
-  const locationSelect = document.getElementById('formLocation');
-  const typeSelect = document.getElementById('formTypeOfFacility');
   const specificSelect = document.getElementById('formSpecificType');
   const frameSelect = document.getElementById('formTrainingFrame');
+  const facilityType = String(
+    draftFacilities[activeFacilityIndex]?.typeOfFacility || '',
+  ).trim();
+  const knownTypes = new Set(getMergedFacilityTypes());
 
-  /** @type {{ locations: string[], facilityTypes: string[], specificTypes: Record<string, string[]>, trainingFrames: string[], trainingOptions: string[] }} */
+  /** @type {{ facilityTypes: string[], specificTypes: Record<string, string[]>, trainingFrames: string[], trainingOptions: string[] }} */
   const additions = {
-    locations: [],
     facilityTypes: [],
     specificTypes: {},
     trainingFrames: [],
     trainingOptions: [],
   };
 
-  if (locationSelect.value === OTHER_VALUE) {
-    const value = getSelectOrOtherValue(locationSelect);
-    if (!value) {
-      showError('בחירת "אחר" במיקום דורשת מילוי השדה שנפתח מתחת');
-      document.getElementById('formLocationOther')?.focus();
-      return;
+  for (const facility of draftFacilities) {
+    const type = String(facility.typeOfFacility || '').trim();
+    if (type && !knownTypes.has(type)) {
+      additions.facilityTypes.push(type);
+      knownTypes.add(type);
     }
-    additions.locations.push(value);
-  }
-
-  if (typeSelect.value === OTHER_VALUE) {
-    const value = getSelectOrOtherValue(typeSelect);
-    if (!value) {
-      showError('בחירת "אחר" בסוג מתקן דורשת מילוי השדה שנפתח מתחת');
-      document.getElementById('formTypeOther')?.focus();
-      return;
-    }
-    additions.facilityTypes.push(value);
   }
 
   if (frameSelect.value === OTHER_VALUE) {
@@ -900,7 +1307,6 @@ function onSaveCustomValues() {
     additions.trainingFrames.push(value);
   }
 
-  const facilityType = getSelectOrOtherValue(typeSelect);
   if (specificSelect.value === OTHER_VALUE) {
     const value = getSelectOrOtherValue(specificSelect);
     if (!value) {
@@ -909,7 +1315,7 @@ function onSaveCustomValues() {
       return;
     }
     if (!facilityType) {
-      showError('יש לבחור סוג מתקן לפני שמירת סוג אימון חדש');
+      showError('יש לבחור סוג מתקן בשלב הפרטים לפני שמירת סוג אימון חדש');
       return;
     }
     additions.specificTypes[facilityType] = [value];
@@ -931,7 +1337,6 @@ function onSaveCustomValues() {
   }
 
   const pendingCount =
-    additions.locations.length +
     additions.facilityTypes.length +
     additions.trainingFrames.length +
     additions.trainingOptions.length +
@@ -981,8 +1386,14 @@ function onSubmit(event) {
   if (!validateUpTo(TOTAL_STEPS)) {
     if (!validateStep(1)) goToStep(1);
     else if (!validateStep(2)) goToStep(2);
+    else if (!validateStep(3)) goToStep(3);
     return;
   }
+
+  prepareLeaveStep(currentStep);
+  syncFacilityListFromDom();
+  saveFacilityEditorToDraft();
+  syncImagesToDraftFacilities();
 
   const lat = parseCoordinate(document.getElementById('formLat').value);
   const lng = parseCoordinate(document.getElementById('formLng').value);
@@ -993,17 +1404,23 @@ function onSubmit(event) {
     phoneOfFacility: document.getElementById('formPhone').value,
     contactNameOfFacility: document.getElementById('formContactName').value,
     contactRoleOfFacility: document.getElementById('formContactRole').value,
-    statusOfFacility: document.getElementById('formStatus').value,
-    locationOfFacility: getSelectOrOtherValue(document.getElementById('formLocation')),
     areaInTheCountry: resolveAreaFromLat(lat ?? NaN),
     lat: String(lat ?? ''),
     lng: String(lng ?? ''),
-    typeOfFacility: getSelectOrOtherValue(document.getElementById('formTypeOfFacility')),
-    specificTypeOfFacility: getSelectOrOtherValue(document.getElementById('formSpecificType')),
-    trainingFrame: getSelectOrOtherValue(document.getElementById('formTrainingFrame')),
-    trainingOptions: getSelectedTrainingOptions().join(', '),
-    imgArr: getUploadedImages(),
-    comments: document.getElementById('formComments').value,
+    facilities: draftFacilities.map((facility) => ({
+      name: facility.name,
+      statusOfFacility: facility.statusOfFacility,
+      locationOfFacility: facility.locationOfFacility,
+      typeOfFacility: facility.typeOfFacility,
+      specificTypeOfFacility: facility.specificTypeOfFacility,
+      trainingFrame: facility.trainingFrame,
+      trainingOptions: facility.trainingOptions.join(', '),
+      contactName: facility.contactName,
+      contactRank: facility.contactRank,
+      contactPhone: facility.contactPhone,
+      imgArr: facility.imgArr,
+      comments: facility.comments,
+    })),
   };
 
   let feature = buildFeatureFromForm(values, editingId);
@@ -1015,13 +1432,6 @@ function onSubmit(event) {
       const existing = state.facilitiesData.features.find(
         (f) => f.properties?.id === editingId,
       );
-      if (existing?.properties?.TypesOfFacilities?.length > 1) {
-        const rest = existing.properties.TypesOfFacilities.slice(1);
-        feature.properties.TypesOfFacilities = [
-          feature.properties.TypesOfFacilities[0],
-          ...rest,
-        ];
-      }
       updateChanges = describeFacilityChanges(existing, feature);
       updateFacility(state.facilitiesData, editingId, feature);
     } else {
@@ -1034,7 +1444,7 @@ function onSubmit(event) {
       /quota/i.test(String(error?.message ?? ''));
     if (isQuota) {
       showError('אין מספיק מקום לשמירת התמונות. הסירו חלק מהן או בחרו תמונות קטנות יותר.');
-      goToStep(3);
+      goToStep(4);
       return;
     }
     throw error;
@@ -1097,7 +1507,7 @@ function startPickOnMap() {
       setCoordinateInput('formLat', lat);
       setCoordinateInput('formLng', lng);
       updateLocationStatus();
-      resumeFormAfterMapPick(2);
+      resumeFormAfterMapPick(1);
     });
   };
 
@@ -1107,9 +1517,9 @@ function startPickOnMap() {
 
 /**
  * Restore the wizard after a successful map pick.
- * @param {number} [step=2]
+ * @param {number} [step=1]
  */
-function resumeFormAfterMapPick(step = 2) {
+function resumeFormAfterMapPick(step = 1) {
   pickingFromForm = false;
   stopPickOnMap();
 
@@ -1140,7 +1550,7 @@ function cancelPickOnMap() {
     formBackdrop.classList.remove('is-opening', 'is-closing');
     void formBackdrop.offsetWidth;
     formBackdrop.classList.add('is-opening');
-    goToStep(2);
+    goToStep(1);
   }
 
   const hint = document.getElementById('mapPickHint');
@@ -1241,7 +1651,7 @@ function updateAdminMapHint() {
   if (isAdmin() && !formOpen) {
     hint.hidden = false;
     hint.classList.add('is-idle');
-    hint.textContent = 'בחרו נקודה במפה להוספת מתקן';
+    hint.textContent = 'בחרו נקודה במפה להוספת נקודת ציון';
   } else {
     hint.hidden = true;
     hint.classList.remove('is-idle');
@@ -1331,6 +1741,16 @@ function escapeAttr(value) {
   return String(value)
     .replaceAll('&', '&amp;')
     .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+/**
+ * @param {string} value
+ */
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
 }

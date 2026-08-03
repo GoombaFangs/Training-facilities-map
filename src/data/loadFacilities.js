@@ -42,6 +42,27 @@ export function ensureFeatureIds(data, options = {}) {
       feature.properties.statusOfFacility = nextStatus;
       migrated = true;
     }
+
+    const types = feature.properties.TypesOfFacilities;
+    if (Array.isArray(types)) {
+      types.forEach((entry) => {
+        if (!entry || typeof entry !== 'object') return;
+        if (!entry.statusOfFacility && feature.properties.statusOfFacility) {
+          entry.statusOfFacility = feature.properties.statusOfFacility;
+          migrated = true;
+        }
+        if (!entry.locationOfFacility && feature.properties.locationOfFacility) {
+          entry.locationOfFacility = feature.properties.locationOfFacility;
+          migrated = true;
+        }
+        const prevTypeStatus = entry.statusOfFacility;
+        const nextTypeStatus = migrateStatusValue(prevTypeStatus);
+        if (nextTypeStatus && nextTypeStatus !== prevTypeStatus) {
+          entry.statusOfFacility = nextTypeStatus;
+          migrated = true;
+        }
+      });
+    }
   });
 
   if (migrated && options.persistIfMigrated) {
@@ -94,17 +115,38 @@ export function deleteFacility(data, id) {
  * @param {string} [existingId]
  */
 export function buildFeatureFromForm(values, existingId) {
-  const trainingOptions = String(values.trainingOptions || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const facilities = Array.isArray(values.facilities) ? values.facilities : [];
 
-  const imgArr = Array.isArray(values.imgArr)
-    ? values.imgArr.filter(Boolean)
-    : String(values.imgArr || '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
+  const types = facilities.map((facility) => {
+    const trainingOptions = String(facility.trainingOptions || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const imgArr = Array.isArray(facility.imgArr)
+      ? facility.imgArr.filter(Boolean)
+      : String(facility.imgArr || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+    return {
+      name: String(facility.name || facility.typeOfFacility || '').trim(),
+      statusOfFacility: String(facility.statusOfFacility || 'פעיל').trim(),
+      locationOfFacility: String(facility.locationOfFacility || '').trim(),
+      typeOfFacility: facility.typeOfFacility,
+      specificTypeOfFacility: String(facility.specificTypeOfFacility || '').trim(),
+      trainingOptions,
+      trainingFrame: String(facility.trainingFrame || '').trim(),
+      contactName: String(facility.contactName || '').trim(),
+      contactRank: String(facility.contactRank || '').trim(),
+      contactPhone: String(facility.contactPhone || '').trim(),
+      imgArr,
+      comments: String(facility.comments || '').trim(),
+    };
+  });
+
+  const primary = types[0] ?? {};
 
   return {
     type: 'Feature',
@@ -112,22 +154,13 @@ export function buildFeatureFromForm(values, existingId) {
       id: existingId || createId(),
       nameOfFacility: values.nameOfFacility.trim(),
       unitOwningTheFacility: values.unitOwningTheFacility.trim(),
-      statusOfFacility: values.statusOfFacility || 'פעיל',
+      statusOfFacility: primary.statusOfFacility || 'פעיל',
       phoneOfFacility: String(values.phoneOfFacility || '').trim(),
       contactNameOfFacility: String(values.contactNameOfFacility || '').trim(),
       contactRoleOfFacility: String(values.contactRoleOfFacility || '').trim(),
-      locationOfFacility: values.locationOfFacility.trim(),
+      locationOfFacility: primary.locationOfFacility || '',
       areaInTheCountry: values.areaInTheCountry,
-      TypesOfFacilities: [
-        {
-          typeOfFacility: values.typeOfFacility,
-          specificTypeOfFacility: values.specificTypeOfFacility.trim(),
-          trainingOptions,
-          trainingFrame: values.trainingFrame.trim(),
-          imgArr,
-          comments: values.comments.trim(),
-        },
-      ],
+      TypesOfFacilities: types,
     },
     geometry: {
       type: 'Point',

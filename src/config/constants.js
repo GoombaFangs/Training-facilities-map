@@ -60,14 +60,6 @@ export function getStatusByValue(value) {
   const migrated = migrateStatusValue(value);
   return FACILITY_STATUSES.find((s) => s.value === migrated) ?? null;
 }
-export const LOCATIONS = [
-  'בסיס צפון',
-  'בסיס מרכז',
-  'בסיס דרום',
-  'מחנה אימונים א',
-  'מחנה אימונים ב',
-  'מתקן אימונים ארצי',
-];
 
 /** Training type options (formerly “specific type”) — same for all facility types */
 export const TRAINING_TYPE_OPTIONS = ['אימון רטוב', 'אימון יבש'];

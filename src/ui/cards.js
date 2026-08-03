@@ -1,8 +1,5 @@
-import { getFacilityTypeByValue, getStatusByValue } from '../config/constants.js';
-import {
-  getFacilityTypeCssClass,
-  getStatusCssClass,
-} from '../data/optionCatalogs.js';
+import { getFacilityTypeByValue } from '../config/constants.js';
+import { getFacilityTypeCssClass } from '../data/optionCatalogs.js';
 import { isAdmin, isManagedFacility, getActiveFacilityManager } from '../auth/roleGate.js';
 import { deleteFacility } from '../data/loadFacilities.js';
 import { state } from '../state.js';
@@ -109,16 +106,9 @@ export function renderCards(container, features, onCardClick, onDataChanged) {
 
     const addressText = document.createElement('p');
     addressText.className = 'cardAddressText';
-    addressText.textContent = props.locationOfFacility;
+    addressText.textContent = props.unitOwningTheFacility || '';
     address.appendChild(addressText);
     card.appendChild(address);
-
-    const statusValue = props.statusOfFacility ?? 'פעיל';
-    const statusMeta = getStatusByValue(statusValue);
-    const status = document.createElement('span');
-    status.className = `statusBadge ${statusMeta?.cssClass ?? getStatusCssClass(statusValue)}`;
-    status.textContent = statusMeta?.label ?? statusValue;
-    card.appendChild(status);
 
     const tags = document.createElement('div');
     tags.className = 'cardTags';
@@ -138,7 +128,9 @@ export function renderCards(container, features, onCardClick, onDataChanged) {
 
       const label = document.createElement('p');
       label.className = 'tagType';
-      label.textContent = typeMeta?.label ?? facilityType.typeOfFacility;
+      const facilityName = String(facilityType.name || '').trim();
+      const typeLabel = typeMeta?.label ?? facilityType.typeOfFacility;
+      label.textContent = facilityName || typeLabel;
       tag.appendChild(label);
 
       tags.appendChild(tag);

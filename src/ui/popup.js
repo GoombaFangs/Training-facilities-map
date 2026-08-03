@@ -5,6 +5,9 @@ import { setupGallery, resetGallery } from './gallery.js';
 
 let activeFeature = null;
 let closeHandlerBound = false;
+/** @type {object[]} */
+let popupFacilities = [];
+let activeFacilityTabIndex = 0;
 
 /**
  * @param {GeoJSON.Feature} feature
@@ -35,7 +38,6 @@ export function openPopup(feature) {
   }
 
   displayInfo();
-  setupGallery({ imgArr: collectAllImages() });
 }
 
 export function closePopup() {
@@ -54,24 +56,27 @@ function getProps() {
   return activeFeature?.properties;
 }
 
-function collectAllImages() {
-  const types = getProps()?.TypesOfFacilities ?? [];
-  return types.flatMap((type) => type.imgArr ?? []);
-}
-
 function displayInfo() {
   const props = getProps();
   if (!props) return;
 
-  document.getElementById('popUpTitle').textContent = props.nameOfFacility;
-  document.getElementById('popUpSubTitle').textContent = props.locationOfFacility;
-  document.getElementById('unitText').textContent = props.unitOwningTheFacility;
+  const unit = String(props.unitOwningTheFacility ?? '').trim();
+  const area = String(props.areaInTheCountry ?? '').trim();
 
-  const statusEl = document.getElementById('statusText');
-  const statusValue = props.statusOfFacility ?? 'פעיל';
-  const statusMeta = getStatusByValue(statusValue);
-  statusEl.textContent = statusMeta?.label ?? statusValue;
-  statusEl.className = `statusBadge ${statusMeta?.cssClass ?? getStatusCssClass(statusValue)}`;
+  document.getElementById('popUpTitle').textContent = props.nameOfFacility || '';
+
+  const subtitle = document.getElementById('popUpSubTitle');
+  if (area) {
+    subtitle.hidden = false;
+    subtitle.textContent = `אזור ${area}`;
+  } else {
+    subtitle.hidden = true;
+    subtitle.textContent = '';
+  }
+
+  const unitText = document.getElementById('unitText');
+  unitText.textContent = unit || '—';
+  unitText.classList.toggle('is-empty', !unit);
 
   const contactName = String(props.contactNameOfFacility ?? '').trim();
   const contactRole = String(props.contactRoleOfFacility ?? '').trim();
@@ -109,67 +114,212 @@ function displayInfo() {
 }
 
 /**
+ * @param {object} facilityType
+ * @param {number} index
+ */
+function getFacilityTabLabel(facilityType, index) {
+  const typeMeta = getFacilityTypeByValue(facilityType?.typeOfFacility);
+  const facilityName = String(facilityType?.name || '').trim();
+  const typeLabel = typeMeta?.label ?? String(facilityType?.typeOfFacility || '').trim();
+  return facilityName || typeLabel || `מתקן ${index + 1}`;
+}
+
+/**
  * @param {Array} types
  */
 function renderFacilitySections(types) {
   const container = document.getElementById('facilitySections');
   container.innerHTML = '';
+  popupFacilities = Array.isArray(types) ? types : [];
+  activeFacilityTabIndex = 0;
 
-  types.forEach((facilityType) => {
-    const section = document.createElement('section');
-    section.className = 'facilitySection';
+  if (popupFacilities.length === 0) {
+    setupGallery({ imgArr: [] });
+    return;
+  }
 
-    const typeMeta = getFacilityTypeByValue(facilityType.typeOfFacility);
-    const heading = document.createElement('h3');
-    heading.className = 'facilitySectionTitle';
-    if (typeMeta) {
-      heading.classList.add(typeMeta.cssClass);
-    }
-    heading.textContent = typeMeta?.label ?? facilityType.typeOfFacility;
-    section.appendChild(heading);
+  const block = document.createElement('div');
+  block.className = 'facilityBlock';
 
-    section.appendChild(
-      createField('סוג אימון', facilityType.specificTypeOfFacility),
-    );
-    section.appendChild(
-      createField('מסגרת מתאמנת', facilityType.trainingFrame),
-    );
+  const heading = document.createElement('div');
+  heading.className = 'facilityBlockHead';
+  const headingTitle = document.createElement('p');
+  headingTitle.className = 'facilityBlockTitle';
+  headingTitle.textContent =
+    popupFacilities.length > 1 ? 'מתקנים בנקודה' : 'פרטי מתקן';
+  heading.appendChild(headingTitle);
+  block.appendChild(heading);
 
-    const optionsBlock = document.createElement('div');
-    optionsBlock.className = 'options';
-    const optionsLabel = document.createElement('p');
-    optionsLabel.textContent = 'סוגי אימון';
-    optionsBlock.appendChild(optionsLabel);
+  if (popupFacilities.length > 1) {
+    const tabs = document.createElement('div');
+    tabs.className = 'facilityPopTabs';
+    tabs.setAttribute('role', 'tablist');
+    tabs.setAttribute('aria-label', 'מתקנים בנקודה');
 
-    const optionsContainer = document.createElement('div');
-    optionsContainer.className = 'optionsContainer';
-    (facilityType.trainingOptions ?? []).forEach((optionText) => {
-      const option = document.createElement('span');
-      option.textContent = String(optionText).trim();
-      optionsContainer.appendChild(option);
+    popupFacilities.forEach((facilityType, index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `facilityPopTab${index === 0 ? ' is-active' : ''}`;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
+      btn.dataset.index = String(index);
+      btn.textContent = getFacilityTabLabel(facilityType, index);
+      btn.addEventListener('click', () => selectFacilityTab(index));
+      tabs.appendChild(btn);
     });
-    optionsBlock.appendChild(optionsContainer);
-    section.appendChild(optionsBlock);
 
-    if (facilityType.comments?.trim()) {
-      const comments = document.createElement('div');
-      comments.className = 'comments';
-      const commentsTitle = document.createElement('p');
-      commentsTitle.className = 'commentsTitle';
-      commentsTitle.textContent = 'הערות';
-      const commentsText = document.createElement('p');
-      commentsText.className = 'commentsText';
-      commentsText.textContent = facilityType.comments;
-      comments.appendChild(commentsTitle);
-      comments.appendChild(commentsText);
-      section.appendChild(comments);
-    }
+    block.appendChild(tabs);
+  }
 
-    container.appendChild(section);
-  });
+  const panel = document.createElement('div');
+  panel.id = 'facilityPopPanel';
+  panel.className = 'facilitySection';
+  panel.setAttribute('role', 'tabpanel');
+  block.appendChild(panel);
+  container.appendChild(block);
+
+  renderActiveFacilityPanel();
 }
 
-function createField(label, value) {
+/**
+ * @param {number} index
+ */
+function selectFacilityTab(index) {
+  if (!Number.isInteger(index) || index === activeFacilityTabIndex) return;
+  if (!popupFacilities[index]) return;
+
+  activeFacilityTabIndex = index;
+
+  document.getElementById('facilitySections')
+    ?.querySelectorAll('.facilityPopTab')
+    .forEach((btn) => {
+      const isActive = Number(btn.dataset.index) === index;
+      btn.classList.toggle('is-active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+  renderActiveFacilityPanel();
+}
+
+function renderActiveFacilityPanel() {
+  const panel = document.getElementById('facilityPopPanel');
+  const facilityType = popupFacilities[activeFacilityTabIndex];
+  if (!panel || !facilityType) return;
+
+  panel.innerHTML = '';
+
+  const typeMeta = getFacilityTypeByValue(facilityType.typeOfFacility);
+  const header = document.createElement('div');
+  header.className = 'facilitySectionHead';
+
+  const title = document.createElement('h3');
+  title.className = 'facilitySectionTitle';
+  if (typeMeta) title.classList.add(typeMeta.cssClass);
+  title.textContent = getFacilityTabLabel(facilityType, activeFacilityTabIndex);
+  header.appendChild(title);
+
+  const statusValue = String(facilityType.statusOfFacility ?? '').trim();
+  if (statusValue) {
+    const statusMeta = getStatusByValue(statusValue);
+    const statusBadge = document.createElement('span');
+    statusBadge.className = `statusBadge ${statusMeta?.cssClass ?? getStatusCssClass(statusValue)}`;
+    statusBadge.textContent = statusMeta?.label ?? statusValue;
+    header.appendChild(statusBadge);
+  }
+  panel.appendChild(header);
+
+  const grid = document.createElement('div');
+  grid.className = 'facilityFieldsGrid';
+
+  appendField(grid, 'מיקום בבסיס', facilityType.locationOfFacility, true);
+  appendField(grid, 'סוג אימון', facilityType.specificTypeOfFacility, true);
+  appendField(grid, 'מסגרת מתאמנת', facilityType.trainingFrame, true);
+
+  const contactName = String(facilityType.contactName ?? '').trim();
+  const contactRank = String(facilityType.contactRank ?? '').trim();
+  const contactPhone = String(facilityType.contactPhone ?? '').trim();
+  if (contactName || contactRank || contactPhone) {
+    const contactParts = [contactName, contactRank].filter(Boolean).join(' · ');
+    const contactValue = contactPhone
+      ? contactParts
+        ? `${contactParts} · ${contactPhone}`
+        : contactPhone
+      : contactParts;
+    const contactField = createField('איש קשר למתקן', contactValue);
+    if (contactField) {
+      contactField.classList.add('popUpFieldWide');
+      grid.appendChild(contactField);
+    }
+  }
+
+  if (grid.childElementCount > 0) {
+    panel.appendChild(grid);
+  }
+
+  const trainingOptions = (facilityType.trainingOptions ?? [])
+    .map((item) => String(item).trim())
+    .filter(Boolean);
+
+  const optionsBlock = document.createElement('div');
+  optionsBlock.className = 'options';
+  const optionsLabel = document.createElement('p');
+  optionsLabel.textContent = 'סוגי אימון';
+  optionsBlock.appendChild(optionsLabel);
+
+  const optionsContainer = document.createElement('div');
+  optionsContainer.className = 'optionsContainer';
+  if (trainingOptions.length) {
+    trainingOptions.forEach((optionText) => {
+      const option = document.createElement('span');
+      option.textContent = optionText;
+      optionsContainer.appendChild(option);
+    });
+  } else {
+    const empty = document.createElement('span');
+    empty.className = 'optionsEmpty';
+    empty.textContent = 'לא צוינו סוגי אימון';
+    optionsContainer.appendChild(empty);
+  }
+  optionsBlock.appendChild(optionsContainer);
+  panel.appendChild(optionsBlock);
+
+  if (facilityType.comments?.trim()) {
+    const comments = document.createElement('div');
+    comments.className = 'comments';
+    const commentsTitle = document.createElement('p');
+    commentsTitle.className = 'commentsTitle';
+    commentsTitle.textContent = 'הערות';
+    const commentsText = document.createElement('p');
+    commentsText.className = 'commentsText';
+    commentsText.textContent = facilityType.comments;
+    comments.appendChild(commentsTitle);
+    comments.appendChild(commentsText);
+    panel.appendChild(comments);
+  }
+
+  setupGallery({ imgArr: facilityType.imgArr ?? [] });
+}
+
+/**
+ * @param {HTMLElement} parent
+ * @param {string} label
+ * @param {unknown} value
+ * @param {boolean} [hideIfEmpty=false]
+ */
+function appendField(parent, label, value, hideIfEmpty = false) {
+  const field = createField(label, value, hideIfEmpty);
+  if (field) parent.appendChild(field);
+}
+
+/**
+ * @param {string} label
+ * @param {unknown} value
+ * @param {boolean} [hideIfEmpty=false]
+ */
+function createField(label, value, hideIfEmpty = false) {
+  const raw = String(value ?? '').trim();
+  if (!raw && hideIfEmpty) return null;
+
   const field = document.createElement('div');
   field.className = 'popUpField';
 
@@ -179,7 +329,12 @@ function createField(label, value) {
 
   const text = document.createElement('p');
   text.className = 'popUpFieldValue';
-  text.textContent = value ?? '';
+  if (raw) {
+    text.textContent = raw;
+  } else {
+    text.classList.add('is-empty');
+    text.textContent = '—';
+  }
 
   field.appendChild(labelEl);
   field.appendChild(text);
