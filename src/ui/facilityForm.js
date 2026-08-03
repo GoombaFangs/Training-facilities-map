@@ -23,6 +23,7 @@ import {
   consumeMapCreateSuppression,
 } from './markerActions.js';
 import { syncMapPinCursor, registerPinCursorContext } from './pinCursor.js';
+import { isPointInIsrael } from '../data/israelBoundary.js';
 
 const OTHER_VALUE = '__other__';
 const OTHER_LABEL = 'אחר';
@@ -761,6 +762,10 @@ function validateStep(step) {
       showError('יש לבחור מיקום על המפה או להזין קואורדינטות תקינות');
       return false;
     }
+    if (!isPointInIsrael(lat, lng)) {
+      showError('ניתן להציב מתקן רק בתוך גבולות המדינה');
+      return false;
+    }
   }
 
   return true;
@@ -1014,6 +1019,10 @@ function startPickOnMap() {
   syncMapPinCursor();
 
   mapClickHandler = (e) => {
+    if (!isPointInIsrael(e.latlng.lat, e.latlng.lng)) {
+      showOutsideIsraelHint();
+      return;
+    }
     playPinDropAnimation(e.latlng, () => {
       document.getElementById('formLat').value = e.latlng.lat.toFixed(6);
       document.getElementById('formLng').value = e.latlng.lng.toFixed(6);
@@ -1083,6 +1092,11 @@ function onAdminMapCreate(e) {
 
   if (e.originalEvent?.target?.closest?.('.leaflet-marker-icon, .facility-marker')) return;
 
+  if (!isPointInIsrael(e.latlng.lat, e.latlng.lng)) {
+    showOutsideIsraelHint();
+    return;
+  }
+
   const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
   playPinDropAnimation(e.latlng, () => {
     openCreateForm(coords);
@@ -1106,6 +1120,20 @@ function updateAdminMapHint() {
   }
 
   syncMapPinCursor();
+}
+
+let outsideHintTimer = 0;
+
+function showOutsideIsraelHint() {
+  const hint = document.getElementById('mapOutsideHint');
+  if (!hint) return;
+
+  hint.hidden = false;
+
+  window.clearTimeout(outsideHintTimer);
+  outsideHintTimer = window.setTimeout(() => {
+    hint.hidden = true;
+  }, 2200);
 }
 
 /**

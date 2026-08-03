@@ -154,6 +154,31 @@
   text-align: center;
 }
 
+.mapOutsideHint {
+  position: fixed;
+  top: 2.4vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 520;
+  background: #b42318;
+  color: #fff;
+  border: 1.5px solid #912018;
+  box-shadow: 0 6px 18px rgba(180, 35, 24, 0.28);
+  padding: 1vh 2.4vh;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-snug);
+  pointer-events: none;
+  letter-spacing: 0.01em;
+  max-width: min(70vw, 36rem);
+  text-align: center;
+}
+
+.mapOutsideHint[hidden] {
+  display: none !important;
+}
+
 .mapPickHint[hidden] {
   display: none !important;
 }

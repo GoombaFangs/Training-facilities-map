@@ -2,6 +2,7 @@ import L from 'leaflet';
 import { MAP_BOUNDS, DEFAULT_VIEW } from '../config/mapBounds.js';
 import { getTileConfig } from '../config/tileConfig.js';
 import { state } from '../state.js';
+import { loadIsraelBoundary, addIsraelOutsideMask } from '../data/israelBoundary.js';
 
 export function createMap(containerId = 'map') {
   const bounds = L.latLngBounds(
@@ -24,5 +25,14 @@ export function createMap(containerId = 'map') {
   L.tileLayer(tiles.url, tiles.options).addTo(map);
 
   state.map = map;
+
+  loadIsraelBoundary()
+    .then(() => {
+      addIsraelOutsideMask(map);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+
   return map;
 }
