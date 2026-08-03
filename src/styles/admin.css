@@ -9,15 +9,22 @@
 
 .roleBadge {
   margin-inline-start: auto;
-  padding: 0.7vh 1.6vh;
-  border-radius: 20vh;
-  font-size: 1.55vh;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  width: 3.2vh;
+  height: 3.2vh;
+  padding: 0;
+  border-radius: 50%;
+  font-size: var(--text-md);
+  font-weight: var(--font-bold);
+  letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: #d9e8f5;
   color: var(--color-primary);
   border: 1.5px solid var(--color-primary);
   box-shadow: 0 1px 4px rgba(1, 84, 151, 0.18);
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .roleBadge[data-role='admin'] {
@@ -30,8 +37,9 @@
 .adminToolbar {
   width: 100%;
   display: flex;
+  flex-direction: column;
   gap: 1vh;
-  margin-bottom: 1.5vh;
+  margin: 0;
 }
 
 .adminToolbar[hidden] {
@@ -45,8 +53,8 @@
   border: none;
   cursor: pointer;
   font-family: inherit;
-  font-size: 1.35vh;
-  font-weight: 500;
+  font-size: var(--text-md);
+  font-weight: var(--font-medium);
 }
 
 .adminBtnPrimary {
@@ -62,20 +70,25 @@
 
 .cardTitleRow {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1vh;
-  padding-inline-end: 1vh;
+  padding: 0;
+  margin: 0;
+  min-height: 2.8vh;
 }
 
 .cardTitleRow .cardTitle {
-  margin-inline-end: 0;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .cardActions {
   display: flex;
-  gap: 0.4vh;
-  padding-top: 1.2vh;
+  align-items: center;
+  gap: 0.5vh;
+  padding: 0;
   flex-shrink: 0;
 }
 
@@ -83,13 +96,15 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35vh;
-  padding: 0.45vh 0.9vh;
-  border-radius: 0.6vh;
+  padding: 0.45vh 0.85vh;
+  border-radius: 0.7vh;
   border: 1px solid var(--color-border);
   background: #fff;
   cursor: pointer;
   font-family: inherit;
-  font-size: 1.1vh;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  line-height: 1;
 }
 
 .cardActionIcon {
@@ -113,22 +128,30 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 500;
-  background: rgba(1, 84, 151, 0.95);
+  background: var(--color-primary);
   color: #fff;
-  padding: 1vh 2vh;
-  border-radius: 1vh;
-  font-size: 1.6vh;
+  border: 1.5px solid var(--color-primary);
+  box-shadow: 0 6px 18px rgba(1, 84, 151, 0.28);
+  padding: 1vh 2.2vh;
+  border-radius: 999px;
+  font-size: var(--text-md);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-snug);
   pointer-events: none;
+  letter-spacing: 0.01em;
 }
 
 .mapPickHint.is-idle {
-  background: rgba(1, 84, 151, 0.82);
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
   top: 2.5vh;
   left: auto;
   right: calc(var(--sidebar-width) + 2vh);
   transform: none;
-  font-size: 1.4vh;
-  max-width: 36vh;
+  font-size: var(--text-sm);
+  max-width: 38vh;
+  text-align: center;
 }
 
 .mapPickHint[hidden] {
@@ -163,18 +186,24 @@
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
 }
 
+.wizardTop {
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #f7f9fb 0%, #ffffff 100%);
+  border-bottom: 1px solid #d8dee5;
+}
+
 .wizardHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.5rem 1.75rem 1rem;
-  border-bottom: 1px solid #eceff2;
+  padding: 1.4rem 1.75rem 1rem;
+  border-bottom: 1px solid #e6ebf0;
 }
 
 .wizardEyebrow {
   margin: 0 0 0.25rem;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   letter-spacing: 0.04em;
   color: var(--color-primary-open);
   font-weight: 500;
@@ -185,6 +214,7 @@
   font-size: 1.45rem;
   font-weight: 600;
   color: var(--color-text);
+  line-height: 1.3;
 }
 
 .wizardClose {
@@ -192,69 +222,103 @@
   height: 2.2rem;
   border-radius: 999px;
   border: none;
-  background: #f1f3f5;
+  background: #eef1f4;
   color: #667;
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .wizardClose:hover {
-  background: #e6eaee;
+  background: #e3e7ec;
   color: var(--color-text);
 }
 
 .wizardSteps {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem 1.75rem;
-  background: linear-gradient(180deg, #f7f9fb 0%, #fff 100%);
+  gap: 0;
+  width: 100%;
+  box-sizing: border-box;
+  /* Equal padding so the strip is centered between the dividers */
+  padding: 1.15rem 1.5rem;
+  margin: 0;
+  background: transparent;
 }
 
 .wizardStep {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.4rem;
   border: none;
   background: transparent;
   cursor: pointer;
   font-family: inherit;
   color: var(--color-muted-strong);
-  padding: 0.25rem;
+  padding: 0;
+  width: 3.75rem;
+  flex: 0 0 3.75rem;
+  box-sizing: border-box;
 }
 
 .wizardStepNum {
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 2.15rem;
+  height: 2.15rem;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
   background: #e8eef3;
   color: #7a8694;
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0);
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .wizardStepLabel {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  width: 100%;
+  transition: color 0.25s ease;
 }
 
 .wizardStep.is-active .wizardStepNum {
   background: var(--color-primary);
   color: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0.16);
 }
 
 .wizardStep.is-active .wizardStepLabel {
   color: var(--color-primary);
+  font-weight: 600;
 }
 
 .wizardStep.is-done .wizardStepNum {
   background: var(--color-primary-open);
   color: #fff;
+  font-size: 0;
+}
+
+.wizardStep.is-done .wizardStepNum::after {
+  content: '';
+  width: 0.45rem;
+  height: 0.75rem;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(45deg) translate(-1px, -1px);
+  font-size: 0;
 }
 
 .wizardStep.is-done .wizardStepLabel {
@@ -262,10 +326,37 @@
 }
 
 .wizardStepLine {
-  width: 2.5rem;
-  height: 2px;
-  background: #d9e1e8;
-  border-radius: 2px;
+  /* Fixed equal segments — whole stepper centers as one unit L/R */
+  flex: 0 0 4rem;
+  width: 4rem;
+  max-width: 4rem;
+  height: 3px;
+  /* Align with circle center: half of 2.15rem − half of 3px */
+  margin: calc(1.075rem - 1.5px) 0.55rem 0;
+  background: #e2e8ee;
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.wizardStepLine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 0%,
+    var(--color-primary-open) 100%
+  );
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wizardStepLine.is-done::after {
+  transform: scaleX(1);
 }
 
 .wizardError {
@@ -286,7 +377,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 0.5rem 1.75rem 1.25rem;
+  padding: 1rem 1.75rem 1.25rem;
 }
 
 .wizardPanel {
@@ -423,10 +514,78 @@
   border-color: #b7c6d3;
 }
 
+.imageUpload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.imageUploadZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-height: 8.5rem;
+  padding: 1.25rem 1rem;
+  border: 1.5px dashed #b7c6d3;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f7fafc 0%, #f2f6f9 100%);
+  color: var(--color-muted-strong);
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.imageUploadZone:hover,
+.imageUploadZone.is-dragover {
+  border-color: var(--color-primary-open);
+  background: #eef7f8;
+  color: var(--color-primary);
+}
+
+.imageUploadZone:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.imageUploadIcon {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-bottom: 0.15rem;
+  color: var(--color-primary-open);
+}
+
+.imageUploadIcon svg {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.imageUploadTitle {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.imageUploadSub {
+  font-size: 0.82rem;
+  color: var(--color-muted-strong);
+}
+
 .imagePicker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
+}
+
+.imagePicker:empty {
+  display: none;
 }
 
 .imagePickItem {
@@ -434,10 +593,10 @@
   aspect-ratio: 4 / 3;
   border-radius: 12px;
   overflow: hidden;
-  border: 2px solid transparent;
+  border: 1px solid var(--card-border, #dde5ec);
   padding: 0;
-  cursor: pointer;
   background: #edf1f4;
+  list-style: none;
 }
 
 .imagePickItem img {
@@ -447,29 +606,28 @@
   display: block;
 }
 
-.imagePickCheck {
+.imagePickRemove {
   position: absolute;
-  top: 0.45rem;
-  left: 0.45rem;
-  width: 1.4rem;
-  height: 1.4rem;
+  top: 0.4rem;
+  left: 0.4rem;
+  width: 1.55rem;
+  height: 1.55rem;
+  border: none;
   border-radius: 999px;
-  background: var(--color-primary);
+  background: rgba(15, 28, 40, 0.72);
   color: #fff;
-  display: none;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease;
 }
 
-.imagePickItem.is-selected {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(1, 84, 151, 0.15);
-}
-
-.imagePickItem.is-selected .imagePickCheck {
-  display: inline-flex;
+.imagePickRemove:hover {
+  background: rgba(180, 35, 24, 0.92);
 }
 
 
@@ -688,7 +846,12 @@
   }
 
   .wizardSteps {
-    gap: 0.25rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .wizardStep {
+    width: 2.4rem;
+    flex-basis: 2.4rem;
   }
 
   .wizardStepLabel {
@@ -696,7 +859,10 @@
   }
 
   .wizardStepLine {
-    width: 1.25rem;
+    flex-basis: 2.75rem;
+    width: 2.75rem;
+    max-width: 2.75rem;
+    margin-top: calc(1.075rem - 1.5px);
   }
 
   .imagePicker {

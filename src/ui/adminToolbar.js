@@ -18,7 +18,9 @@ export function updateRoleUi() {
   toolbar.hidden = !admin;
   app.classList.toggle('is-admin', admin);
 
-  badge.textContent = admin ? 'מנהל' : 'אורח';
+  badge.textContent = admin ? 'מ' : 'א';
+  badge.title = admin ? 'מנהל' : 'אורח';
+  badge.setAttribute('aria-label', admin ? 'מנהל' : 'אורח');
   badge.dataset.role = admin ? ROLES.ADMIN : ROLES.GUEST;
 
   setAdminMapCreateEnabled(admin);

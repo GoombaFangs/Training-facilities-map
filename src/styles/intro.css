@@ -4,15 +4,21 @@
   transform: translateX(110%);
 }
 
-.appShell .container {
-  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+.appShell.is-ready .container {
+  transform: translateX(0);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
+}
+
+.appShell.is-ready.is-sidebar-collapsed .container {
+  transform: translateX(100%);
 }
 
 .appShell:not(.is-ready) .searchBlock > *,
 .appShell:not(.is-ready) .adminToolbar,
 .appShell:not(.is-ready) .cards .card,
-.appShell:not(.is-ready) .leaflet-control-zoom {
+.appShell:not(.is-ready) .leaflet-control-zoom,
+.appShell:not(.is-ready) .sidebarToggle {
   opacity: 0;
   transform: translateY(16px);
 }
@@ -24,6 +30,14 @@
   transition:
     opacity 0.45s ease,
     transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.appShell.is-ready .sidebarToggle {
+  opacity: 1;
+  transition:
+    opacity 0.35s ease 0.4s,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .appShell.is-ready .searchBlock > *:nth-child(1) { transition-delay: 0.28s; }
@@ -71,6 +85,14 @@
 @media (max-width: 768px) {
   .appShell:not(.is-ready) .container {
     transform: translateY(110%);
+  }
+
+  .appShell.is-ready .container {
+    transform: translateY(0);
+  }
+
+  .appShell.is-ready.is-sidebar-collapsed .container {
+    transform: translateY(100%);
   }
 
   @keyframes sidebarCardIn {

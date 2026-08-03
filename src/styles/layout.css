@@ -19,32 +19,97 @@
   direction: rtl;
   height: 100vh;
   width: var(--sidebar-width);
-  background-color: var(--color-bg);
-  box-shadow: 0 -5px 10px #333333;
-  font-size: 1.5vh;
+  background: linear-gradient(180deg, #eef1f4 0%, #e8ebef 100%);
+  box-shadow: -4px 0 18px rgba(15, 28, 40, 0.2);
+  font-size: var(--text-md);
   position: fixed;
   top: 0;
   right: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
+  gap: 1.5vh;
+  padding: 2vh var(--sidebar-pad) 1.5vh;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.sidebarToggle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  border: 1px solid #d5dde5;
+  background: #fff;
+  color: var(--color-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(15, 28, 40, 0.14);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sidebarToggle:hover {
+  background: #f5f8fa;
+  box-shadow: 0 6px 16px rgba(15, 28, 40, 0.18);
+}
+
+.sidebarToggleIcon {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+  margin-right: 0.15rem;
+  transition: transform 0.25s ease;
+}
+
+.appShell.is-sidebar-collapsed .sidebarToggleIcon {
+  transform: rotate(-135deg);
+  margin-right: -0.15rem;
+}
+
+.appShell.is-sidebar-collapsed .container {
+  transform: translateX(100%);
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.appShell.is-sidebar-collapsed .sidebarToggle {
+  pointer-events: auto;
+  transform: translate(-120%, -50%);
+  box-shadow: 0 4px 16px rgba(15, 28, 40, 0.2);
 }
 
 .searchBlock {
-  background-color: var(--color-bg);
-  width: 32vh;
+  background-color: var(--color-surface);
+  width: 100%;
+  max-width: 100%;
   z-index: 2;
-  position: fixed;
-  box-shadow: 0 -5px 10px #333333;
-  padding: 3vh 4vh 4vh;
+  position: relative;
+  border-radius: var(--card-radius);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+  padding: 2vh 2.2vh 2.2vh;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   align-items: flex-start;
-  justify-content: space-between;
-  transition: 0.5s ease;
+  justify-content: flex-start;
+  gap: 1vh;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .hebetLogo {
@@ -57,20 +122,26 @@
 
 .appTitle {
   width: 100%;
-  margin: 1vh 0;
-  font-size: 1.8vh;
-  font-weight: 500;
+  margin: 0.3vh 0 0.6vh;
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
   color: var(--color-text);
+  text-align: right;
+  line-height: var(--leading-snug);
 }
 
 .search {
   height: auto;
-  width: 32vh;
+  width: 100%;
   border-radius: 1vh;
-  border: solid var(--color-border) 0.19vh;
-  margin: 0 0 1vh;
+  border: var(--card-border);
+  margin: 0;
   padding: 1.5vh;
   font-family: inherit;
+  font-size: var(--text-md);
+  font-weight: var(--font-regular);
+  line-height: var(--leading-normal);
+  background: #fff;
 }
 
 @media (max-width: 768px) {
@@ -80,13 +151,41 @@
     top: auto;
     bottom: 0;
     right: 0;
+    padding: 1.5vh 1.5vh 1vh;
+    gap: 1vh;
+    box-shadow: 0 -4px 18px rgba(15, 28, 40, 0.2);
+  }
+
+  .sidebarToggle {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .sidebarToggleIcon {
+    transform: rotate(135deg);
+    margin-right: 0;
+    margin-bottom: 0.15rem;
+  }
+
+  .appShell.is-sidebar-collapsed .sidebarToggleIcon {
+    transform: rotate(-45deg);
+    margin-bottom: -0.15rem;
+  }
+
+  .appShell.is-ready.is-sidebar-collapsed .container,
+  .appShell.is-sidebar-collapsed .container {
+    transform: translateY(100%);
+  }
+
+  .appShell.is-sidebar-collapsed .sidebarToggle {
+    transform: translate(-50%, -120%);
   }
 
   .searchBlock {
-    width: calc(100% - 4vh);
+    width: 100%;
     position: relative;
-    box-shadow: none;
-    padding: 2vh;
+    padding: 1.5vh;
   }
 
   .search {

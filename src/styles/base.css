@@ -22,7 +22,30 @@
   --tag-ez-fg: #68611a;
 
   --sidebar-width: 40vh;
+  --panel-card-width: 32vh;
+  --sidebar-pad: calc((var(--sidebar-width) - var(--panel-card-width)) / 2);
   --font-family: 'Rubik', 'Segoe UI', Tahoma, sans-serif;
+
+  --card-radius: 1.2vh;
+  --card-border: 1px solid #d8dee5;
+  --card-shadow: 0 4px 16px rgba(15, 28, 40, 0.08);
+
+  /* Typography scale (design system) */
+  --text-xs: 1.15vh; /* caption / tags / badges */
+  --text-sm: 1.3vh; /* meta / secondary / small actions */
+  --text-md: 1.45vh; /* body / inputs / filters */
+  --text-lg: 1.75vh; /* card title / emphasis */
+  --text-xl: 2.15vh; /* panel title */
+  --text-2xl: 2.5vh; /* rare display */
+
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.35;
+  --leading-normal: 1.45;
 }
 
 @font-face {
@@ -47,6 +70,9 @@ html {
   overflow: hidden;
   user-select: none;
   font-family: var(--font-family);
+  font-size: var(--text-md);
+  font-weight: var(--font-regular);
+  line-height: var(--leading-normal);
   color: var(--color-text);
 }
 

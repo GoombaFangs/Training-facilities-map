@@ -85,16 +85,6 @@ export const TRAINING_OPTIONS = [
   'ניווט',
 ];
 
-export const AVAILABLE_IMAGES = [
-  '/assets/img/img1.avif',
-  '/assets/img/img2.jpg',
-  '/assets/img/img3.jpg',
-  '/assets/img/img4.jpg',
-  '/assets/img/img5.webp',
-  '/assets/img/img6.jpg',
-  '/assets/img/img7.JPG',
-];
-
 export function getFacilityTypeByValue(value) {
   return FACILITY_TYPES.find((t) => t.value === value) ?? null;
 }

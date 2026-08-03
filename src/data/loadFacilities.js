@@ -83,10 +83,12 @@ export function buildFeatureFromForm(values, existingId) {
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const imgArr = String(values.imgArr || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const imgArr = Array.isArray(values.imgArr)
+    ? values.imgArr.filter(Boolean)
+    : String(values.imgArr || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
 
   return {
     type: 'Feature',

@@ -53,14 +53,22 @@
         לחצו על המפה כדי לבחור מיקום
       </div>
 
-      <aside class="container">
+      <aside class="container" id="sidebar">
+        <button
+          type="button"
+          id="sidebarToggle"
+          class="sidebarToggle"
+          aria-label="הסתר תפריט"
+          aria-expanded="true"
+          aria-controls="sidebar"
+          title="הסתר תפריט"
+        >
+          <span class="sidebarToggleIcon" aria-hidden="true"></span>
+        </button>
         <div class="searchBlock">
           <div class="sidebarTop">
             <img class="hebetLogo" src="/assets/HebetLogo.png" alt="לוגו הבט" />
-            <div id="logos" class="logos">
-              <img src="/assets/zroaHyabasha.png" alt="זרוע היבשה" />
-            </div>
-            <span id="roleBadge" class="roleBadge" data-role="guest">אורח</span>
+            <span id="roleBadge" class="roleBadge" data-role="guest" title="אורח" aria-label="אורח">א</span>
           </div>
           <h1 class="appTitle">מאגר מתקני אימון ארצי</h1>
 
@@ -145,32 +153,34 @@
 
     <div id="facilityFormBackdrop" class="facilityFormBackdrop" hidden>
       <form id="facilityForm" class="facilityForm" novalidate>
-        <header class="wizardHeader">
-          <div>
-            <p class="wizardEyebrow">ניהול מתקנים</p>
-            <h2 id="facilityFormTitle">הוספת מתקן</h2>
-          </div>
-          <button type="button" id="facilityFormCancel" class="wizardClose" aria-label="סגור">
-            &times;
-          </button>
-        </header>
+        <div class="wizardTop">
+          <header class="wizardHeader">
+            <div>
+              <p class="wizardEyebrow">ניהול מתקנים</p>
+              <h2 id="facilityFormTitle">הוספת מתקן</h2>
+            </div>
+            <button type="button" id="facilityFormCancel" class="wizardClose" aria-label="סגור">
+              &times;
+            </button>
+          </header>
 
-        <nav class="wizardSteps" aria-label="שלבי הטופס">
-          <button type="button" class="wizardStep is-active" data-step="1">
-            <span class="wizardStepNum">1</span>
-            <span class="wizardStepLabel">פרטים</span>
-          </button>
-          <span class="wizardStepLine" aria-hidden="true"></span>
-          <button type="button" class="wizardStep" data-step="2">
-            <span class="wizardStepNum">2</span>
-            <span class="wizardStepLabel">מיקום</span>
-          </button>
-          <span class="wizardStepLine" aria-hidden="true"></span>
-          <button type="button" class="wizardStep" data-step="3">
-            <span class="wizardStepNum">3</span>
-            <span class="wizardStepLabel">עיצוב</span>
-          </button>
-        </nav>
+          <nav class="wizardSteps" aria-label="שלבי הטופס">
+            <button type="button" class="wizardStep is-active" data-step="1">
+              <span class="wizardStepNum">1</span>
+              <span class="wizardStepLabel">פרטים</span>
+            </button>
+            <span class="wizardStepLine" data-line="1" aria-hidden="true"></span>
+            <button type="button" class="wizardStep" data-step="2">
+              <span class="wizardStepNum">2</span>
+              <span class="wizardStepLabel">מיקום</span>
+            </button>
+            <span class="wizardStepLine" data-line="2" aria-hidden="true"></span>
+            <button type="button" class="wizardStep" data-step="3">
+              <span class="wizardStepNum">3</span>
+              <span class="wizardStepLabel">עיצוב</span>
+            </button>
+          </nav>
+        </div>
 
         <p id="facilityFormError" class="wizardError" hidden></p>
 
@@ -290,9 +300,30 @@
           </section>
 
           <section class="wizardPanel" data-panel="3">
-            <p class="wizardPanelLead">בחרו תמונות להצגה בכרטיס המתקן</p>
-            <div id="formImgPicker" class="imagePicker" role="group" aria-label="בחירת תמונות"></div>
-            <p class="wizardHint">ניתן לבחור כמה תמונות. לחיצה נוספת מבטלת בחירה.</p>
+            <p class="wizardPanelLead">העלו תמונות להצגה בכרטיס המתקן</p>
+            <div class="imageUpload">
+              <input
+                id="formImgInput"
+                class="imageUploadInput"
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+              />
+              <button type="button" id="formImgDropzone" class="imageUploadZone">
+                <span class="imageUploadIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M12 16V5" stroke-linecap="round" />
+                    <path d="M8.5 8.5 12 5l3.5 3.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M5 16.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1.5" stroke-linecap="round" />
+                  </svg>
+                </span>
+                <span class="imageUploadTitle">גררו תמונות לכאן או לחצו לבחירה</span>
+                <span class="imageUploadSub">JPG, PNG או WEBP · עד 8 תמונות</span>
+              </button>
+              <div id="formImgPicker" class="imagePicker" role="list" aria-label="תמונות שהועלו"></div>
+            </div>
+            <p class="wizardHint">ניתן להעלות כמה תמונות. לחיצה על × מסירה תמונה מהרשימה.</p>
           </section>
         </div>
 

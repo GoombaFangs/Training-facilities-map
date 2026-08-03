@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css';
 import './styles/main.css';
 
 import { createMap } from './map/createMap.js';
-import { addMarkers } from './map/markers.js';
+import { addMarkers, highlightFacilityOnMap } from './map/markers.js';
 import { loadFacilities } from './data/loadFacilities.js';
 import { filterFacilities } from './data/filterFacilities.js';
 import { searchFacilities } from './data/searchFacilities.js';
@@ -20,7 +20,17 @@ async function init() {
   createMap('map');
   initSidebar({ onSearch: refreshView });
   initFilters({ onChange: refreshView });
-  initFacilityForm({ onSaved: refreshView });
+  initFacilityForm({
+    onSaved: (meta) => {
+      refreshView();
+      if (meta?.isNew && meta.id) {
+        // Wait a frame so markers exist in the DOM after refresh
+        requestAnimationFrame(() => {
+          highlightFacilityOnMap(meta.id);
+        });
+      }
+    },
+  });
   initAdminToolbar();
 
   try {

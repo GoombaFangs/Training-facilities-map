@@ -49,15 +49,6 @@
 }
 
 /* ---- Sidebar living details ---- */
-.appShell.is-ready .hebetLogo,
-.appShell.is-ready .logos img {
-  animation: floatSoft 4s ease-in-out infinite;
-}
-
-.appShell.is-ready .logos img {
-  animation-delay: 0.6s;
-}
-
 .roleBadge {
   transition:
     transform 0.25s var(--ease-spring),
@@ -119,11 +110,11 @@
 }
 
 .filteringIcon {
-  transition: transform 0.3s var(--ease-out), background-color 0.2s ease;
+  transition: transform 0.3s var(--ease-out), opacity 0.2s ease;
 }
 
 .filtering.is-open .filteringIcon {
-  transform: rotate(180deg);
+  transform: rotate(-45deg);
 }
 
 .filterOptions span {
@@ -176,9 +167,8 @@
 }
 
 .card:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
-  border-color: #9db4c7;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(15, 28, 40, 0.12);
 }
 
 .card:active {
@@ -221,8 +211,15 @@
   transform: scale(1.05);
 }
 
-.statusActive {
-  animation: softPulse 2.8s ease-in-out infinite;
+.card .statusBadge,
+.card .statusActive {
+  animation: none;
+  transform: none;
+  box-shadow: none;
+}
+
+.card .statusBadge:hover {
+  transform: none;
 }
 
 /* ---- Map ---- */
@@ -298,6 +295,133 @@
 
 .facility-marker:hover .facility-marker-pin::before {
   background: linear-gradient(165deg, #ff7070 0%, #e05050 52%, #c44343 100%);
+}
+
+/* Newly created facility — spotlight on the map */
+.facility-marker.is-just-added {
+  z-index: 1200 !important;
+  overflow: visible !important;
+}
+
+.appShell.is-ready .facility-marker.is-just-added .facility-marker-pin,
+.facility-marker.is-just-added .facility-marker-pin {
+  animation: markerSpotlightBounce 0.85s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  filter:
+    drop-shadow(0 0 12px rgba(220, 60, 60, 0.65))
+    drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+}
+
+/* After spotlight ends — don't replay the map settle/bounce */
+.appShell.is-ready .facility-marker.was-highlighted .facility-marker-pin,
+.facility-marker.was-highlighted .facility-marker-pin {
+  animation: none !important;
+}
+
+.facility-marker.is-just-added .facility-marker-pin::before {
+  background: linear-gradient(165deg, #f25b5b 0%, #d04646 52%, #b83a3a 100%) !important;
+  box-shadow: 0 0 0 3px rgba(208, 70, 70, 0.28);
+}
+
+.facility-marker.is-just-added .facility-marker-pin::after {
+  background: linear-gradient(180deg, #d04646 0%, #b83a3a 100%) !important;
+}
+
+.facility-marker.is-just-added .facility-marker-dot {
+  box-shadow: 0 0 0 1.5px rgba(184, 58, 58, 0.28);
+}
+
+.facility-marker-beacon {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.facility-marker-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  margin: -14px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(220, 60, 60, 0.55) 0%,
+    rgba(184, 58, 58, 0.16) 55%,
+    transparent 72%
+  );
+  animation: markerGlowPulse 1.6s ease-in-out 2;
+}
+
+.facility-marker-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px;
+  border-radius: 50%;
+  border: 2.5px solid #e04545 !important;
+  box-sizing: border-box;
+  opacity: 0;
+  animation: markerBeaconRing 1.7s cubic-bezier(0.16, 0.8, 0.3, 1) both;
+  box-shadow: 0 0 0 1px rgba(220, 60, 60, 0.15);
+}
+
+.facility-marker-ring:nth-child(2) {
+  animation-delay: 0.28s;
+}
+
+.facility-marker-ring:nth-child(3) {
+  animation-delay: 0.56s;
+}
+
+@keyframes markerSpotlightBounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-28px) scale(0.72);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(3px) scale(1.08);
+  }
+  75% {
+    transform: translateY(-4px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes markerBeaconRing {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.35);
+  }
+  70% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(5.2);
+  }
+}
+
+@keyframes markerGlowPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.35);
+  }
 }
 
 @keyframes markerPinIn {
@@ -430,18 +554,6 @@
   transform: scale(1.04);
 }
 
-.imagePickItem.is-selected {
-  animation: badgePop 0.35s var(--ease-spring) both;
-}
-
-.imagePickCheck {
-  transition: transform 0.25s var(--ease-spring);
-}
-
-.imagePickItem.is-selected .imagePickCheck {
-  animation: checkPop 0.35s var(--ease-spring) both;
-}
-
 .wizardBtn,
 .wizardMapBtn,
 .wizardClose {
@@ -467,8 +579,174 @@
   transform: rotate(90deg);
 }
 
+.facilityFormBackdrop:not([hidden]) {
+  animation: formBackdropIn 0.35s ease both;
+}
+
 .facilityFormBackdrop:not([hidden]) .facilityForm {
-  animation: formIn 0.4s var(--ease-out) both;
+  animation: formIn 0.55s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+.facilityFormBackdrop.is-opening:not([hidden]) .facilityForm {
+  animation: formPinOpen 0.6s cubic-bezier(0.22, 1.25, 0.36, 1) both;
+}
+
+/* Pin cursor + drop animation */
+.leaflet-container.is-pin-mode {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='52' viewBox='0 0 48 52'%3E%3Cg transform='rotate(16 24 48)'%3E%3Cpath fill='%23015497' stroke='%23fff' stroke-width='2' d='M24 2C16.3 2 10 8.3 10 16c0 10.5 14 28 14 28s14-17.5 14-28C38 8.3 31.7 2 24 2z'/%3E%3Ccircle cx='24' cy='16' r='5' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E") 28 48, crosshair !important;
+}
+
+.leaflet-container.is-pin-mode .leaflet-marker-icon,
+.leaflet-container.is-pin-mode .facility-marker {
+  cursor: pointer !important;
+}
+
+.leaflet-container.is-pin-hiding {
+  cursor: default !important;
+}
+
+.leaflet-container.is-pin-hiding .leaflet-marker-icon,
+.leaflet-container.is-pin-hiding .facility-marker {
+  cursor: pointer !important;
+}
+
+.pin-drop-marker,
+.leaflet-marker-icon.pin-drop-marker {
+  background: none !important;
+  border: none !important;
+  overflow: visible !important;
+}
+
+.pin-drop {
+  width: 56px;
+  height: 60px;
+  position: relative;
+  overflow: visible;
+}
+
+.pin-drop-pin {
+  width: 34px;
+  height: 44px;
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  top: auto;
+  transform: translateX(-50%) rotate(16deg);
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.28));
+  animation: pinDropIn 0.55s cubic-bezier(0.22, 1.35, 0.36, 1) both;
+  z-index: 2;
+  overflow: visible;
+}
+
+.pin-drop-head,
+.pin-drop-tip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+}
+
+.pin-drop-head {
+  top: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+}
+
+.pin-drop-tip {
+  top: 20px;
+  width: 14px;
+  height: 20px;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.pin-drop-head--blue {
+  background: linear-gradient(165deg, #1a6bb0 0%, #015497 55%, #014679 100%);
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.45s ease;
+}
+
+.pin-drop-tip--blue {
+  background: linear-gradient(180deg, #015497 0%, #014679 100%);
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.45s ease;
+}
+
+.pin-drop-head--red,
+.pin-drop-tip--red {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  z-index: 2;
+}
+
+.pin-drop-head--red {
+  background: linear-gradient(165deg, #f25b5b 0%, #d04646 52%, #b83a3a 100%);
+}
+
+.pin-drop-tip--red {
+  background: linear-gradient(180deg, #d04646 0%, #b83a3a 100%);
+}
+
+.pin-drop-dot {
+  position: absolute;
+  left: 50%;
+  top: 9px;
+  width: 9px;
+  height: 9px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #fff;
+  z-index: 3;
+}
+
+.pin-drop-ripple {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 11px;
+  height: 11px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 2px solid rgba(1, 84, 151, 0.45);
+  animation: pinRipple 0.6s 0.2s ease-out both;
+  z-index: 1;
+  transition: border-color 0.45s ease, opacity 0.45s ease;
+}
+
+.pin-drop-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 12px;
+  height: 4px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  animation: pinShadowIn 0.55s ease both;
+  z-index: 0;
+}
+
+.pin-drop.is-planted .pin-drop-pin {
+  animation: pinSettle 0.42s cubic-bezier(0.22, 1.1, 0.36, 1) both;
+}
+
+.pin-drop.is-planted .pin-drop-head--blue,
+.pin-drop.is-planted .pin-drop-tip--blue {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.pin-drop.is-planted .pin-drop-head--red,
+.pin-drop.is-planted .pin-drop-tip--red {
+  opacity: 1;
+}
+
+.pin-drop.is-planted .pin-drop-ripple {
+  border-color: rgba(208, 70, 70, 0.55);
 }
 
 .locationCard {
@@ -588,17 +866,6 @@
   }
 }
 
-@keyframes markerPinIn {
-  from {
-    opacity: 0;
-    margin-top: -10px;
-  }
-  to {
-    opacity: 1;
-    margin-top: 0;
-  }
-}
-
 @keyframes hintFloat {
   0%,
   100% {
@@ -628,6 +895,89 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes formBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes formPinOpen {
+  0% {
+    opacity: 0;
+    transform: translateY(36px) scale(0.88);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pinDropIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) rotate(16deg) translateY(-28px) scale(1.08);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-50%) rotate(10deg) translateY(2px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) rotate(16deg) translateY(0) scale(1);
+  }
+}
+
+@keyframes pinSettle {
+  0% {
+    transform: translateX(-50%) rotate(16deg);
+  }
+  22% {
+    transform: translateX(-50%) rotate(-10deg);
+  }
+  48% {
+    transform: translateX(-50%) rotate(8deg);
+  }
+  72% {
+    transform: translateX(-50%) rotate(-4deg);
+  }
+  100% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+}
+
+@keyframes pinRipple {
+  0% {
+    opacity: 0.8;
+    transform: translateX(-50%) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(2.6);
+  }
+}
+
+@keyframes pinShadowIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.4);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.1);
+  }
+  100% {
+    opacity: 0.85;
+    transform: translateX(-50%) scale(1);
   }
 }
 

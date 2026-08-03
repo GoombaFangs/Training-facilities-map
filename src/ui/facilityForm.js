@@ -1,10 +1,10 @@
+import L from 'leaflet';
 import {
   FACILITY_TYPES,
   AREAS,
   LOCATIONS,
   TRAINING_FRAMES,
   TRAINING_OPTIONS,
-  AVAILABLE_IMAGES,
   FACILITY_STATUSES,
   getSpecificTypesFor,
 } from '../config/constants.js';
@@ -26,9 +26,13 @@ import {
   closeMarkerActionMenu,
   consumeMapCreateSuppression,
 } from './markerActions.js';
+import { syncMapPinCursor, registerPinCursorContext } from './pinCursor.js';
 
 const OTHER_VALUE = '__other__';
 const OTHER_LABEL = 'אחר';
+const MAX_UPLOAD_IMAGES = 8;
+const MAX_IMAGE_EDGE = 1280;
+const IMAGE_JPEG_QUALITY = 0.72;
 
 let onSaved = () => {};
 let editingId = null;
@@ -36,15 +40,23 @@ let mapClickHandler = null;
 let adminMapCreateBound = false;
 let currentStep = 1;
 const TOTAL_STEPS = 3;
-/** @type {Set<string>} */
-let selectedImages = new Set();
+/** @type {string[]} */
+let uploadedImages = [];
 let saveCustomsResetTimer = 0;
+let isPinDropping = false;
+let imageUploadBound = false;
 
 /**
- * @param {{ onSaved: () => void }} options
+ * @param {{ onSaved: (meta?: { id: string, isNew: boolean }) => void }} options
  */
 export function initFacilityForm({ onSaved: savedCb }) {
   onSaved = savedCb;
+
+  registerPinCursorContext(() => ({
+    isPinDropping,
+    mapClickActive: Boolean(mapClickHandler),
+    adminMapCreateBound,
+  }));
 
   document.getElementById('facilityFormCancel').addEventListener('click', closeForm);
   document.getElementById('facilityFormBackdrop').addEventListener('click', (e) => {
@@ -77,7 +89,8 @@ export function initFacilityForm({ onSaved: savedCb }) {
   });
 
   refillAllOptionLists();
-  renderImagePicker();
+  bindImageUpload();
+  renderUploadedImages();
 }
 
 export function openCreateForm(coords = null) {
@@ -125,17 +138,9 @@ export function openEditForm(feature) {
   setSelectOrOther(document.getElementById('formTrainingFrame'), type.trainingFrame);
 
   setSelectedTrainingOptions(type.trainingOptions ?? []);
-  setSelectedImages(type.imgArr ?? []);
+  setUploadedImages(type.imgArr ?? []);
 
   showForm();
-}
-
-export function closeForm() {
-  stopPickOnMap();
-  clearError();
-  resetSaveCustomsButton();
-  document.getElementById('facilityFormBackdrop').hidden = true;
-  updateAdminMapHint();
 }
 
 function showForm() {
@@ -144,8 +149,24 @@ function showForm() {
   clearError();
   goToStep(1);
   updateLocationStatus();
-  document.getElementById('facilityFormBackdrop').hidden = false;
+  const backdrop = document.getElementById('facilityFormBackdrop');
+  backdrop.hidden = false;
+  backdrop.classList.remove('is-opening');
+  void backdrop.offsetWidth;
+  backdrop.classList.add('is-opening');
   updateAdminMapHint();
+  syncMapPinCursor();
+}
+
+export function closeForm() {
+  stopPickOnMap();
+  clearError();
+  resetSaveCustomsButton();
+  const backdrop = document.getElementById('facilityFormBackdrop');
+  backdrop.hidden = true;
+  backdrop.classList.remove('is-opening');
+  updateAdminMapHint();
+  syncMapPinCursor();
 }
 
 function resetFormFields() {
@@ -162,7 +183,7 @@ function resetFormFields() {
   });
   refreshSpecificTypes();
   setSelectedTrainingOptions([]);
-  setSelectedImages([]);
+  setUploadedImages([]);
   resetSaveCustomsButton();
 }
 
@@ -426,70 +447,154 @@ function getSelectedTrainingOptions() {
   return selected;
 }
 
-function renderImagePicker() {
-  const picker = document.getElementById('formImgPicker');
-  picker.innerHTML = AVAILABLE_IMAGES.map(
-    (src) => `
-      <button type="button" class="imagePickItem" data-src="${escapeAttr(src)}" aria-pressed="false">
-        <img src="${escapeAttr(src)}" alt="" />
-        <span class="imagePickCheck" aria-hidden="true">✓</span>
-      </button>
-    `,
-  ).join('');
+function bindImageUpload() {
+  if (imageUploadBound) return;
+  imageUploadBound = true;
 
-  picker.querySelectorAll('.imagePickItem').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const src = btn.dataset.src;
-      if (selectedImages.has(src)) selectedImages.delete(src);
-      else selectedImages.add(src);
-      syncImagePickerUi();
-    });
+  const input = document.getElementById('formImgInput');
+  const zone = document.getElementById('formImgDropzone');
+  if (!input || !zone) return;
+
+  zone.addEventListener('click', () => {
+    if (uploadedImages.length >= MAX_UPLOAD_IMAGES) {
+      showError(`ניתן להעלות עד ${MAX_UPLOAD_IMAGES} תמונות`);
+      return;
+    }
+    input.click();
+  });
+
+  input.addEventListener('change', async () => {
+    const files = [...(input.files ?? [])];
+    input.value = '';
+    await addImageFiles(files);
+  });
+
+  zone.addEventListener('dragenter', (event) => {
+    event.preventDefault();
+    zone.classList.add('is-dragover');
+  });
+  zone.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    zone.classList.add('is-dragover');
+  });
+  zone.addEventListener('dragleave', () => {
+    zone.classList.remove('is-dragover');
+  });
+  zone.addEventListener('drop', async (event) => {
+    event.preventDefault();
+    zone.classList.remove('is-dragover');
+    const files = [...(event.dataTransfer?.files ?? [])].filter((file) =>
+      file.type.startsWith('image/'),
+    );
+    await addImageFiles(files);
+  });
+}
+
+/**
+ * @param {File[]} files
+ */
+async function addImageFiles(files) {
+  if (!files.length) return;
+  clearError();
+
+  const remaining = MAX_UPLOAD_IMAGES - uploadedImages.length;
+  if (remaining <= 0) {
+    showError(`ניתן להעלות עד ${MAX_UPLOAD_IMAGES} תמונות`);
+    return;
+  }
+
+  const batch = files.slice(0, remaining);
+  if (files.length > remaining) {
+    showError(`נוספו ${batch.length} תמונות בלבד (מגבלה: ${MAX_UPLOAD_IMAGES})`);
+  }
+
+  try {
+    const dataUrls = await Promise.all(batch.map((file) => compressImageFile(file)));
+    uploadedImages = [...uploadedImages, ...dataUrls];
+    renderUploadedImages();
+  } catch {
+    showError('לא הצלחנו לקרוא את אחת התמונות. נסו קובץ אחר.');
+  }
+}
+
+/**
+ * @param {File} file
+ * @returns {Promise<string>}
+ */
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('image decode failed'));
+      img.onload = () => {
+        const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(img.width, img.height));
+        const width = Math.max(1, Math.round(img.width * scale));
+        const height = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('canvas unavailable'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', IMAGE_JPEG_QUALITY));
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
   });
 }
 
 /**
  * @param {string[]} images
  */
-function setSelectedImages(images) {
-  selectedImages = new Set(images.filter(Boolean));
+function setUploadedImages(images) {
+  uploadedImages = (images ?? []).filter(Boolean).slice(0, MAX_UPLOAD_IMAGES);
+  renderUploadedImages();
+}
 
+function renderUploadedImages() {
   const picker = document.getElementById('formImgPicker');
-  selectedImages.forEach((src) => {
-    if (
-      !AVAILABLE_IMAGES.includes(src) &&
-      !picker.querySelector(`[data-src="${cssEscape(src)}"]`)
-    ) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'imagePickItem';
-      btn.dataset.src = src;
-      btn.setAttribute('aria-pressed', 'false');
-      btn.innerHTML = `
-        <img src="${escapeAttr(src)}" alt="" />
-        <span class="imagePickCheck" aria-hidden="true">✓</span>
-      `;
-      btn.addEventListener('click', () => {
-        if (selectedImages.has(src)) selectedImages.delete(src);
-        else selectedImages.add(src);
-        syncImagePickerUi();
-      });
-      picker.appendChild(btn);
-    }
+  const zone = document.getElementById('formImgDropzone');
+  if (!picker) return;
+
+  picker.innerHTML = uploadedImages
+    .map(
+      (src, index) => `
+      <div class="imagePickItem" role="listitem">
+        <img src="${escapeAttr(src)}" alt="תמונה ${index + 1}" />
+        <button
+          type="button"
+          class="imagePickRemove"
+          data-index="${index}"
+          aria-label="הסר תמונה ${index + 1}"
+        >×</button>
+      </div>
+    `,
+    )
+    .join('');
+
+  picker.querySelectorAll('.imagePickRemove').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const index = Number(btn.dataset.index);
+      if (!Number.isInteger(index)) return;
+      uploadedImages = uploadedImages.filter((_, i) => i !== index);
+      clearError();
+      renderUploadedImages();
+    });
   });
 
-  syncImagePickerUi();
+  if (zone) {
+    zone.disabled = uploadedImages.length >= MAX_UPLOAD_IMAGES;
+  }
 }
 
-function syncImagePickerUi() {
-  document.querySelectorAll('.imagePickItem').forEach((btn) => {
-    const selected = selectedImages.has(btn.dataset.src);
-    btn.classList.toggle('is-selected', selected);
-    btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
-  });
-}
-
-function getSelectedImages() {
-  return [...selectedImages];
+function getUploadedImages() {
+  return [...uploadedImages];
 }
 
 function goNext() {
@@ -515,10 +620,17 @@ function goToStep(step) {
     btn.classList.toggle('is-done', btnStep < step);
   });
 
+  document.querySelectorAll('.wizardStepLine').forEach((line) => {
+    const lineIndex = Number(line.dataset.line);
+    line.classList.toggle('is-done', lineIndex < step);
+  });
+
   document.getElementById('wizardBack').hidden = step === 1;
   document.getElementById('wizardNext').hidden = step === TOTAL_STEPS;
   document.getElementById('wizardSave').hidden = step !== TOTAL_STEPS;
-  document.getElementById('wizardSaveCustoms').hidden = step !== TOTAL_STEPS;
+
+  const saveCustoms = document.getElementById('wizardSaveCustoms');
+  if (saveCustoms) saveCustoms.hidden = step !== TOTAL_STEPS;
 
   if (step !== TOTAL_STEPS) resetSaveCustomsButton();
   if (step === 2) updateLocationStatus();
@@ -750,30 +862,46 @@ function onSubmit(event) {
     specificTypeOfFacility: getSelectOrOtherValue(document.getElementById('formSpecificType')),
     trainingFrame: getSelectOrOtherValue(document.getElementById('formTrainingFrame')),
     trainingOptions: getSelectedTrainingOptions().join(', '),
-    imgArr: getSelectedImages().join(', '),
+    imgArr: getUploadedImages(),
     comments: document.getElementById('formComments').value,
   };
 
   let feature = buildFeatureFromForm(values, editingId);
 
-  if (editingId) {
-    const existing = state.facilitiesData.features.find(
-      (f) => f.properties?.id === editingId,
-    );
-    if (existing?.properties?.TypesOfFacilities?.length > 1) {
-      const rest = existing.properties.TypesOfFacilities.slice(1);
-      feature.properties.TypesOfFacilities = [
-        feature.properties.TypesOfFacilities[0],
-        ...rest,
-      ];
+  try {
+    if (editingId) {
+      const existing = state.facilitiesData.features.find(
+        (f) => f.properties?.id === editingId,
+      );
+      if (existing?.properties?.TypesOfFacilities?.length > 1) {
+        const rest = existing.properties.TypesOfFacilities.slice(1);
+        feature.properties.TypesOfFacilities = [
+          feature.properties.TypesOfFacilities[0],
+          ...rest,
+        ];
+      }
+      updateFacility(state.facilitiesData, editingId, feature);
+    } else {
+      addFacility(state.facilitiesData, feature);
     }
-    updateFacility(state.facilitiesData, editingId, feature);
-  } else {
-    addFacility(state.facilitiesData, feature);
+  } catch (error) {
+    const isQuota =
+      error?.name === 'QuotaExceededError' ||
+      error?.code === 22 ||
+      /quota/i.test(String(error?.message ?? ''));
+    if (isQuota) {
+      showError('אין מספיק מקום לשמירת התמונות. הסירו חלק מהן או בחרו תמונות קטנות יותר.');
+      goToStep(3);
+      return;
+    }
+    throw error;
   }
 
   closeForm();
-  onSaved();
+  onSaved({
+    id: feature.properties.id,
+    isNew: !editingId,
+  });
 }
 
 function startPickOnMap() {
@@ -782,20 +910,27 @@ function startPickOnMap() {
   const hint = document.getElementById('mapPickHint');
   hint.classList.remove('is-idle');
   hint.hidden = false;
-  hint.textContent = 'לחצו על המפה כדי לבחור מיקום';
+  hint.textContent = 'בחרו מיקום במפה';
   document.getElementById('facilityFormBackdrop').hidden = true;
-  state.map.getContainer().style.cursor = 'crosshair';
 
   stopPickOnMap(false);
+  syncMapPinCursor();
 
   mapClickHandler = (e) => {
-    document.getElementById('formLat').value = e.latlng.lat.toFixed(6);
-    document.getElementById('formLng').value = e.latlng.lng.toFixed(6);
-    updateLocationStatus();
-    stopPickOnMap();
-    document.getElementById('facilityFormBackdrop').hidden = false;
-    goToStep(2);
-    updateAdminMapHint();
+    playPinDropAnimation(e.latlng, () => {
+      document.getElementById('formLat').value = e.latlng.lat.toFixed(6);
+      document.getElementById('formLng').value = e.latlng.lng.toFixed(6);
+      updateLocationStatus();
+      stopPickOnMap();
+      const backdrop = document.getElementById('facilityFormBackdrop');
+      backdrop.hidden = false;
+      backdrop.classList.remove('is-opening');
+      void backdrop.offsetWidth;
+      backdrop.classList.add('is-opening');
+      goToStep(2);
+      updateAdminMapHint();
+      syncMapPinCursor();
+    });
   };
 
   state.map.once('click', mapClickHandler);
@@ -805,14 +940,11 @@ function startPickOnMap() {
  * @param {boolean} [clearCursor=true]
  */
 function stopPickOnMap(clearCursor = true) {
-  if (clearCursor && state.map) {
-    state.map.getContainer().style.cursor = '';
-  }
-
   if (mapClickHandler && state.map) {
     state.map.off('click', mapClickHandler);
     mapClickHandler = null;
   }
+  if (clearCursor) syncMapPinCursor();
 }
 
 /**
@@ -831,10 +963,11 @@ export function setAdminMapCreateEnabled(enabled) {
   }
 
   updateAdminMapHint();
+  syncMapPinCursor();
 }
 
 function onAdminMapCreate(e) {
-  if (!isAdmin() || !adminMapCreateBound) return;
+  if (!isAdmin() || !adminMapCreateBound || isPinDropping) return;
   if (mapClickHandler) return;
 
   if (hasOpenMarkerMenu()) {
@@ -853,7 +986,10 @@ function onAdminMapCreate(e) {
 
   if (e.originalEvent?.target?.closest?.('.leaflet-marker-icon, .facility-marker')) return;
 
-  openCreateForm({ lat: e.latlng.lat, lng: e.latlng.lng });
+  const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
+  playPinDropAnimation(e.latlng, () => {
+    openCreateForm(coords);
+  });
 }
 
 function updateAdminMapHint() {
@@ -866,11 +1002,76 @@ function updateAdminMapHint() {
   if (isAdmin() && !formOpen) {
     hint.hidden = false;
     hint.classList.add('is-idle');
-    hint.textContent = 'לחצו על המפה כדי להוסיף מתקן חדש';
+    hint.textContent = 'בחרו נקודה במפה להוספת מתקן';
   } else {
     hint.hidden = true;
     hint.classList.remove('is-idle');
   }
+
+  syncMapPinCursor();
+}
+
+/**
+ * @param {L.LatLng} latlng
+ * @param {() => void} [onDone]
+ */
+function playPinDropAnimation(latlng, onDone) {
+  if (!state.map) {
+    onDone?.();
+    return;
+  }
+
+  isPinDropping = true;
+  const container = state.map.getContainer();
+
+  // Hide cursor pin immediately, then start drop only after it's gone
+  container.classList.remove('is-pin-mode');
+  container.classList.add('is-pin-hiding');
+
+  window.setTimeout(() => {
+    if (!state.map) {
+      isPinDropping = false;
+      onDone?.();
+      return;
+    }
+
+    const icon = L.divIcon({
+      className: 'pin-drop-marker',
+      html: `
+        <div class="pin-drop">
+          <div class="pin-drop-pin">
+            <span class="pin-drop-head pin-drop-head--blue"></span>
+            <span class="pin-drop-tip pin-drop-tip--blue"></span>
+            <span class="pin-drop-head pin-drop-head--red"></span>
+            <span class="pin-drop-tip pin-drop-tip--red"></span>
+            <span class="pin-drop-dot"></span>
+          </div>
+          <div class="pin-drop-ripple"></div>
+          <div class="pin-drop-shadow"></div>
+        </div>
+      `,
+      iconSize: [56, 60],
+      iconAnchor: [28, 56],
+    });
+
+    const marker = L.marker(latlng, {
+      icon,
+      interactive: false,
+      keyboard: false,
+      zIndexOffset: 1000,
+    }).addTo(state.map);
+
+    window.setTimeout(() => {
+      marker.getElement()?.querySelector('.pin-drop')?.classList.add('is-planted');
+    }, 340);
+
+    window.setTimeout(() => {
+      state.map?.removeLayer(marker);
+      container.classList.remove('is-pin-hiding');
+      isPinDropping = false;
+      onDone?.();
+    }, 820);
+  }, 90);
 }
 
 export function startAddFacilityFlow() {
@@ -883,9 +1084,4 @@ function escapeAttr(value) {
     .replaceAll('"', '&quot;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
-}
-
-function cssEscape(value) {
-  if (window.CSS?.escape) return CSS.escape(value);
-  return String(value).replace(/["\\]/g, '\\$&');
 }

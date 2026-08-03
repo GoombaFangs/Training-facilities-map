@@ -1,5 +1,6 @@
 import L from 'leaflet';
 import { state } from '../state.js';
+import { syncMapPinCursor } from './pinCursor.js';
 
 let menuEl = null;
 let menuLatLng = null;
@@ -74,6 +75,7 @@ export function showMarkerActionMenu(feature, layer, handlers) {
   positionMenu();
   requestAnimationFrame(() => {
     menuEl?.classList.add('is-open');
+    syncMapPinCursor();
   });
 
   map.on('move', positionMenu);
@@ -111,6 +113,7 @@ export function closeMarkerActionMenu() {
 
   menuLayer = null;
   menuLatLng = null;
+  syncMapPinCursor();
 }
 
 export function hasOpenMarkerMenu() {
