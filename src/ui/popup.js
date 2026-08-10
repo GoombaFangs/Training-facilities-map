@@ -231,6 +231,7 @@ function renderActiveFacilityPanel() {
   const grid = document.createElement('div');
   grid.className = 'facilityFieldsGrid';
 
+  appendField(grid, 'שם מתקן', facilityType.name, true);
   appendField(grid, 'מיקום בבסיס', facilityType.locationOfFacility, true);
   appendField(grid, 'סוג אימון', facilityType.specificTypeOfFacility, true);
   appendField(grid, 'מסגרת מתאמנת', facilityType.trainingFrame, true);

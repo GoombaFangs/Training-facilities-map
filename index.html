@@ -416,11 +416,6 @@
               <span class="wizardStepNum">3</span>
               <span class="wizardStepLabel">מתקנים</span>
             </button>
-            <span class="wizardStepLine" data-line="3" aria-hidden="true"></span>
-            <button type="button" class="wizardStep" data-step="4">
-              <span class="wizardStepNum">4</span>
-              <span class="wizardStepLabel">תמונות</span>
-            </button>
           </nav>
         </div>
 
@@ -478,6 +473,14 @@
             <p class="wizardPanelLead">ערכו את פרטי כל מתקן בנקודת הציון</p>
             <div id="facilityEditorTabs" class="facilityEditorTabs" role="tablist" aria-label="מתקנים לעריכה"></div>
             <div class="wizardGrid facilityEditorGrid">
+              <div class="wizardField wizardFieldFull">
+                <span>שם מתקן</span>
+                <input
+                  id="formFacilityName"
+                  type="text"
+                  placeholder="לדוגמה: מטווח 7, חדר ירי מרכזי"
+                />
+              </div>
               <div class="wizardField">
                 <span>סטטוס</span>
                 <select id="formStatus"></select>
@@ -549,6 +552,24 @@
                 <span>הערות</span>
                 <textarea id="formComments" rows="3" placeholder="מידע נוסף למשתמשים..."></textarea>
               </label>
+              <div class="wizardField wizardFieldFull facilityPhotosField">
+                <div class="facilityPhotosHead">
+                  <span>תמונות</span>
+                  <span id="formFacilityPhotosMeta" class="facilityPhotosMeta"></span>
+                </div>
+                <div class="facilityPhotosBody">
+                  <input
+                    id="formImgInput"
+                    class="imageUploadInput"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    hidden
+                  />
+                  <div id="formImgPicker" class="facilityPhotosGrid" role="list" aria-label="תמונות המתקן"></div>
+                </div>
+                <p class="facilityPhotosHint">התמונות משויכות למתקן הנבחר בטאבים · JPG, PNG, WEBP · עד 8 תמונות</p>
+              </div>
             </div>
           </section>
 
@@ -587,33 +608,6 @@
             </div>
             <p id="locationStatus" class="locationStatus">טרם נבחר מיקום</p>
             <p id="formAreaAuto" class="locationAreaAuto">האזור בארץ ייקבע אוטומטית לפי המיקום</p>
-          </section>
-
-          <section class="wizardPanel" data-panel="4">
-            <p class="wizardPanelLead">העלו תמונות ושייכו כל תמונה למתקן בנקודה</p>
-            <div class="imageUpload">
-              <input
-                id="formImgInput"
-                class="imageUploadInput"
-                type="file"
-                accept="image/*"
-                multiple
-                hidden
-              />
-              <button type="button" id="formImgDropzone" class="imageUploadZone">
-                <span class="imageUploadIcon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M12 16V5" stroke-linecap="round" />
-                    <path d="M8.5 8.5 12 5l3.5 3.5" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M5 16.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1.5" stroke-linecap="round" />
-                  </svg>
-                </span>
-                <span class="imageUploadTitle">גררו תמונות לכאן או לחצו לבחירה</span>
-                <span class="imageUploadSub">JPG, PNG או WEBP · עד 8 תמונות לכל מתקן</span>
-              </button>
-              <div id="formImgPicker" class="imagePicker" role="list" aria-label="תמונות שהועלו"></div>
-            </div>
-            <p class="wizardHint">ליד כל תמונה בחרו לאיזה מתקן היא שייכת. לחיצה על × מסירה תמונה.</p>
           </section>
         </div>
 
@@ -698,9 +692,14 @@
             <div class="settingsMain">
               <div class="settingsMainTop">
                 <h3 id="settingsListTitle" class="settingsListTitle"></h3>
-                <button type="button" id="settingsAddItem" class="settingsAddBtn">
-                  הוסף אפשרות
-                </button>
+                <div class="settingsMainTopActions">
+                  <button type="button" id="settingsResetOptions" class="settingsResetBtn">
+                    איפוס
+                  </button>
+                  <button type="button" id="settingsAddItem" class="settingsAddBtn">
+                    הוסף אפשרות
+                  </button>
+                </div>
               </div>
               <p id="settingsError" class="settingsError" hidden></p>
               <ul id="settingsList" class="settingsList"></ul>

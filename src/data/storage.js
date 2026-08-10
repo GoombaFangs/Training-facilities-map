@@ -1,29 +1,23 @@
-const STORAGE_KEY = 'training-facilities-data';
+import { getData, setData, clearData } from './dataStore.js';
 
 /**
  * @returns {GeoJSON.FeatureCollection | null}
  */
 export function loadStoredFacilities() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const data = JSON.parse(raw);
-    if (data?.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
-      return null;
-    }
-    return data;
-  } catch {
+  const data = getData('facilities');
+  if (data?.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
     return null;
   }
+  return data;
 }
 
 /**
  * @param {GeoJSON.FeatureCollection} data
  */
 export function saveFacilities(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  setData('facilities', data);
 }
 
 export function clearStoredFacilities() {
-  localStorage.removeItem(STORAGE_KEY);
+  clearData('facilities');
 }

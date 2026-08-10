@@ -7,8 +7,7 @@ import {
   migrateStatusValue,
 } from '../config/constants.js';
 import { loadCustomOptions, mergeUnique } from './customOptions.js';
-
-const STORAGE_KEY = 'training-facilities-option-catalogs';
+import { getData, setData } from './dataStore.js';
 
 /** Editable option lists shown in settings — synced with selectable form fields. */
 /** @typedef {'statuses' | 'facilityTypes' | 'trainingTypes' | 'trainingFrames' | 'trainingOptions'} CatalogKey */
@@ -31,6 +30,15 @@ export const CATALOG_LABELS = {
   trainingOptions: 'סוגי אימון',
 };
 
+const HIDDEN_KEY = 'hidden';
+
+/**
+ * @returns {Record<CatalogKey, string[]>}
+ */
+export function defaultHiddenCatalogs() {
+  return Object.fromEntries(CATALOG_KEYS.map((key) => [key, []]));
+}
+
 /**
  * @returns {Record<CatalogKey, string[]>}
  */
@@ -45,27 +53,38 @@ export function defaultOptionCatalogs() {
 }
 
 /**
- * @returns {Record<CatalogKey, string[]>}
+ * @returns {{ catalogs: Record<CatalogKey, string[]>, hidden: Record<CatalogKey, string[]> }}
  */
-export function loadOptionCatalogs() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      const normalized = normalizeCatalogs(parsed);
-      const migrated = migrateStatusCatalog(normalized);
-      if (migrated.changed) {
-        saveOptionCatalogs(migrated.catalogs);
-      }
-      return migrated.catalogs;
+export function loadOptionCatalogsData() {
+  const stored = getData('option-catalogs');
+  if (stored && typeof stored === 'object') {
+    const parsed = /** @type {Record<string, unknown>} */ (stored);
+    const normalized = normalizeCatalogs(parsed);
+    const hidden = normalizeHidden(parsed[HIDDEN_KEY]);
+    const migrated = migrateStatusCatalog(normalized);
+    if (migrated.changed) {
+      saveOptionCatalogs(migrated.catalogs, hidden);
     }
-  } catch {
-    /* fall through to seed */
+    return { catalogs: migrated.catalogs, hidden };
   }
 
   const seeded = seedFromDefaultsAndLegacyCustoms();
   saveOptionCatalogs(seeded);
-  return seeded;
+  return { catalogs: seeded, hidden: defaultHiddenCatalogs() };
+}
+
+/**
+ * @returns {Record<CatalogKey, string[]>}
+ */
+export function loadOptionCatalogs() {
+  return loadOptionCatalogsData().catalogs;
+}
+
+/**
+ * @returns {Record<CatalogKey, string[]>}
+ */
+export function loadHiddenCatalogs() {
+  return loadOptionCatalogsData().hidden;
 }
 
 /**
@@ -108,16 +127,26 @@ function seedFromDefaultsAndLegacyCustoms() {
 
 /**
  * @param {Record<CatalogKey, string[]>} data
+ * @param {Record<CatalogKey, string[]> | undefined} hidden
  */
-export function saveOptionCatalogs(data) {
+export function saveOptionCatalogs(data, hidden) {
   const normalized = normalizeCatalogs(data);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+  let normalizedHidden = normalizeHidden(hidden);
+  if (hidden === undefined) {
+    const stored = getData('option-catalogs');
+    if (stored && typeof stored === 'object') {
+      normalizedHidden = normalizeHidden(
+        /** @type {Record<string, unknown>} */ (stored)[HIDDEN_KEY],
+      );
+    }
+  }
+  setData('option-catalogs', { ...normalized, [HIDDEN_KEY]: normalizedHidden });
   return normalized;
 }
 
 export function resetOptionCatalogs() {
   const defaults = defaultOptionCatalogs();
-  saveOptionCatalogs(defaults);
+  saveOptionCatalogs(defaults, defaultHiddenCatalogs());
   return defaults;
 }
 
@@ -126,8 +155,61 @@ export function resetOptionCatalogs() {
  * @returns {string[]}
  */
 export function getCatalogList(key) {
-  const catalogs = loadOptionCatalogs();
+  const { catalogs } = loadOptionCatalogsData();
   return [...(catalogs[key] ?? [])];
+}
+
+/**
+ * Count how many facilities use a catalog option value.
+ * @param {CatalogKey} catalogKey
+ * @param {string} value
+ * @param {import('geojson').FeatureCollection | null | undefined} facilitiesData
+ * @returns {number}
+ */
+export function countCatalogOptionUsage(catalogKey, value, facilitiesData) {
+  const trimmed = String(value ?? '').trim();
+  if (!trimmed) return 0;
+
+  const features = facilitiesData?.features ?? [];
+  let count = 0;
+
+  for (const feature of features) {
+    const props = feature.properties ?? {};
+    const nested = props.TypesOfFacilities ?? [];
+
+    switch (catalogKey) {
+      case 'facilityTypes':
+        if (nested.some((t) => String(t.typeOfFacility ?? '').trim() === trimmed)) count++;
+        break;
+      case 'statuses':
+        if (
+          String(props.statusOfFacility ?? '').trim() === trimmed ||
+          nested.some((t) => String(t.statusOfFacility ?? '').trim() === trimmed)
+        ) {
+          count++;
+        }
+        break;
+      case 'trainingTypes':
+        if (nested.some((t) => String(t.specificTypeOfFacility ?? '').trim() === trimmed)) count++;
+        break;
+      case 'trainingFrames':
+        if (nested.some((t) => String(t.trainingFrame ?? '').trim() === trimmed)) count++;
+        break;
+      case 'trainingOptions':
+        if (
+          nested.some((t) =>
+            (t.trainingOptions ?? []).some((option) => String(option).trim() === trimmed),
+          )
+        ) {
+          count++;
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  return count;
 }
 
 /**
@@ -142,7 +224,7 @@ export function getCatalogList(key) {
  * @returns {{ saved: Record<CatalogKey, string[]>, addedCount: number }}
  */
 export function appendToOptionCatalogs(additions) {
-  const current = loadOptionCatalogs();
+  const { catalogs: current, hidden } = loadOptionCatalogsData();
   let addedCount = 0;
 
   /** @type {CatalogKey[]} */
@@ -152,6 +234,10 @@ export function appendToOptionCatalogs(additions) {
     const before = current[key].length;
     current[key] = mergeUnique(current[key], extra);
     addedCount += current[key].length - before;
+    if (extra.length > 0) {
+      const addedSet = new Set(extra.map(String));
+      hidden[key] = (hidden[key] ?? []).filter((value) => !addedSet.has(value));
+    }
   }
 
   const trainingTypeExtras = [
@@ -161,8 +247,12 @@ export function appendToOptionCatalogs(additions) {
   const beforeTypes = current.trainingTypes.length;
   current.trainingTypes = mergeUnique(current.trainingTypes, trainingTypeExtras);
   addedCount += current.trainingTypes.length - beforeTypes;
+  if (trainingTypeExtras.length > 0) {
+    const addedSet = new Set(trainingTypeExtras.map(String));
+    hidden.trainingTypes = (hidden.trainingTypes ?? []).filter((value) => !addedSet.has(value));
+  }
 
-  saveOptionCatalogs(current);
+  saveOptionCatalogs(current, hidden);
   return { saved: current, addedCount };
 }
 
@@ -192,6 +282,22 @@ function normalizeCatalogs(data) {
 function normalizeList(value) {
   if (!Array.isArray(value)) return [];
   return mergeUnique([], value.map(String));
+}
+
+/**
+ * @param {unknown} value
+ * @returns {Record<CatalogKey, string[]>}
+ */
+function normalizeHidden(value) {
+  const defaults = defaultHiddenCatalogs();
+  if (!value || typeof value !== 'object') return defaults;
+
+  /** @type {Record<CatalogKey, string[]>} */
+  const result = { ...defaults };
+  for (const key of CATALOG_KEYS) {
+    result[key] = normalizeList(/** @type {Record<string, unknown>} */ (value)[key]);
+  }
+  return result;
 }
 
 /**

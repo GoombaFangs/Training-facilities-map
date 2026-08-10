@@ -9,25 +9,49 @@ import { searchFacilities } from './data/searchFacilities.js';
 import { state } from './state.js';
 import { showRoleGate, isAdmin, isManagedFacility, getActiveFacilityManager } from './auth/roleGate.js';
 import { initSidebar } from './ui/sidebar.js';
-import { initFilters, reloadFilters, getActiveFilters, hasActiveFiltersOrSearch, updateFilterResultsMeta } from './ui/filters.js';
+import {
+  initFilters,
+  reloadFilters,
+  getActiveFilters,
+  hasActiveFiltersOrSearch,
+  updateFilterResultsMeta,
+  applyFilterSnapshot,
+  getViewPreferencesSnapshot,
+  applySearchQuery,
+} from './ui/filters.js';
+import {
+  getManagerPreferenceKey,
+  loadManagerPreferences,
+  saveCurrentManagerPreferences,
+} from './data/managerPreferences.js';
 import { renderCards } from './ui/cards.js';
 import { openPopup, closePopup } from './ui/popup.js';
 import { initFacilityForm, openEditForm, refreshFacilityFormOptions } from './ui/facilityForm.js';
 import { initAdminToolbar, updateRoleUi } from './ui/adminToolbar.js';
 import { showMarkerActionMenu } from './ui/markerActions.js';
 import { initSettingsPanel } from './ui/settingsPanel.js';
-import { initMessagesPanel } from './ui/messagesPanel.js';
+import { initMessagesPanel, updateMessagesBadge } from './ui/messagesPanel.js';
 import { loadMapRegionLayout, resolveAreaFromLat } from './data/mapRegionLayout.js';
 import { saveFacilities } from './data/storage.js';
+import {
+  initDataStore,
+  isApiAvailable,
+  startDataPolling,
+  flushPendingSaves,
+} from './data/dataStore.js';
+import { ensureFeatureIds } from './data/loadFacilities.js';
 
 /** @type {number} */
 let cardPopupTimer = 0;
+/** @type {number} */
+let savePreferencesTimer = 0;
 const CARD_POPUP_DELAY_MS = 2800;
+const SAVE_PREFERENCES_DELAY_MS = 300;
 
 async function init() {
   createMap('map');
-  initSidebar({ onSearch: refreshView });
-  initFilters({ onChange: refreshView });
+  initSidebar({ onSearch: onViewPreferencesChanged });
+  initFilters({ onChange: onViewPreferencesChanged });
   initFacilityForm({
     onSaved: (meta) => {
       refreshView();
@@ -49,12 +73,34 @@ async function init() {
   initMessagesPanel();
   initAdminToolbar();
 
+  await initDataStore();
+
   try {
     state.facilitiesData = await loadFacilities();
     syncFacilityAreasFromLayout();
   } catch (error) {
     console.error(error);
   }
+
+  startDataPolling({
+    onFacilitiesUpdate: (data) => {
+      state.facilitiesData = ensureFeatureIds(data, { persistIfMigrated: false });
+      refreshView();
+    },
+    onReportsUpdate: () => {
+      updateMessagesBadge();
+    },
+  });
+
+  if (!isApiAvailable()) {
+    console.info(
+      'Local API unavailable — using browser storage. For multi-user LAN deployment, run: npm run start',
+    );
+  }
+
+  window.addEventListener('beforeunload', () => {
+    flushPendingSaves();
+  });
 
   await startSession();
 }
@@ -83,12 +129,39 @@ function syncFacilityAreasFromLayout() {
   if (changed) saveFacilities(state.facilitiesData);
 }
 
+function onViewPreferencesChanged() {
+  scheduleSaveViewPreferences();
+  refreshView();
+}
+
+function scheduleSaveViewPreferences() {
+  window.clearTimeout(savePreferencesTimer);
+  savePreferencesTimer = window.setTimeout(() => {
+    const snapshot = getViewPreferencesSnapshot();
+    saveCurrentManagerPreferences(snapshot);
+  }, SAVE_PREFERENCES_DELAY_MS);
+}
+
+function applySavedViewPreferences() {
+  const prefs = loadManagerPreferences(getManagerPreferenceKey());
+  if (!prefs) return;
+
+  if (prefs.filters) {
+    applyFilterSnapshot(prefs.filters);
+  }
+
+  if (typeof prefs.searchQuery === 'string') {
+    applySearchQuery(prefs.searchQuery);
+  }
+}
+
 async function startSession() {
   const shell = document.getElementById('appShell');
   shell.classList.remove('is-ready');
 
   await showRoleGate();
 
+  applySavedViewPreferences();
   updateRoleUi();
   refreshView();
 

@@ -977,6 +977,157 @@
   margin-top: 0;
 }
 
+.facilityPhotosField {
+  gap: 0.55rem;
+}
+
+.facilityPhotosHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.facilityPhotosMeta {
+  font-size: 0.82rem;
+  font-weight: var(--font-regular);
+  color: var(--color-muted);
+}
+
+.facilityPhotosBody {
+  border: 1px solid #d5dde5;
+  border-radius: var(--modal-control-radius);
+  background: #fff;
+  padding: 0.65rem;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.facilityPhotosBody.is-dragover {
+  border-color: var(--color-primary-open);
+  background: #f4fafb;
+}
+
+.facilityPhotosGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.facilityPhotoItem {
+  min-width: 0;
+}
+
+.facilityPhotoThumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e3e9ef;
+  background: #edf1f4;
+}
+
+.facilityPhotoThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.facilityPhotoRemove {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  width: 1.45rem;
+  height: 1.45rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(15, 28, 40, 0.72);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease;
+}
+
+.facilityPhotoThumb:hover .facilityPhotoRemove,
+.facilityPhotoRemove:focus-visible {
+  opacity: 1;
+}
+
+.facilityPhotoRemove svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.facilityPhotoRemove:hover {
+  background: rgba(180, 35, 24, 0.92);
+}
+
+.facilityPhotosAddTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  aspect-ratio: 4 / 3;
+  min-height: 5.5rem;
+  border: 1.5px dashed #c5d0da;
+  border-radius: 10px;
+  background: #f8fafb;
+  color: var(--color-muted-strong);
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.facilityPhotosAddTile.is-empty {
+  grid-column: 1 / -1;
+  aspect-ratio: auto;
+  min-height: 7rem;
+}
+
+.facilityPhotosAddTile:hover,
+.facilityPhotosBody.is-dragover .facilityPhotosAddTile {
+  border-color: var(--color-primary-open);
+  background: #eef7f8;
+  color: var(--color-primary);
+}
+
+.facilityPhotosAddIcon {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--color-primary-open);
+}
+
+.facilityPhotosAddIcon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.facilityPhotosAddLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.facilityPhotosHint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  line-height: var(--leading-tight);
+}
+
 .wizardFooter {
   display: flex;
   align-items: center;
@@ -1153,8 +1304,8 @@
     margin-top: calc(1.075rem - 1.5px);
   }
 
-  .imagePicker {
-    grid-template-columns: repeat(2, 1fr);
+  .facilityPhotosGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .wizardFooter {

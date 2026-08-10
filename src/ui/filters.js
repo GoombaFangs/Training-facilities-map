@@ -72,8 +72,22 @@ export function initFilters({ onChange }) {
 /** Rebuild filter chips from catalogs while preserving valid selections. */
 export function reloadFilters() {
   const snapshot = snapshotFilters();
-  clearFilterState();
   renderAllFilterSections();
+  applyFilterSnapshot(snapshot);
+}
+
+/**
+ * Restore filter selections from a saved snapshot.
+ * Invalid or stale values are skipped silently.
+ * @param {ReturnType<typeof snapshotFilters>} snapshot
+ */
+export function applyFilterSnapshot(snapshot) {
+  clearFilterState();
+  document
+    .querySelectorAll('#filterPanel input[type="checkbox"]')
+    .forEach((input) => {
+      if (input instanceof HTMLInputElement) input.checked = false;
+    });
 
   for (const section of FILTER_SECTIONS) {
     const previous = snapshot[section.stateKey] ?? [];
@@ -90,6 +104,29 @@ export function reloadFilters() {
 
   renderActiveFilterTags();
   updateFilterChrome();
+}
+
+/**
+ * @returns {{ filters: ReturnType<typeof snapshotFilters>, searchQuery: string }}
+ */
+export function getViewPreferencesSnapshot() {
+  return {
+    filters: snapshotFilters(),
+    searchQuery: state.searchQuery,
+  };
+}
+
+/**
+ * Restore search query in state and the search input.
+ * @param {string} query
+ */
+export function applySearchQuery(query) {
+  state.searchQuery = String(query ?? '');
+  const searchInput = document.getElementById('search');
+  if (searchInput instanceof HTMLInputElement) {
+    searchInput.value = state.searchQuery;
+  }
+  syncSearchClearButton();
 }
 
 /**

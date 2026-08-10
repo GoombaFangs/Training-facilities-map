@@ -332,6 +332,13 @@
   flex-shrink: 0;
 }
 
+.settingsMainTopActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .settingsListTitle {
   margin: 0;
   font-size: 1.05rem;
@@ -354,6 +361,23 @@
 .settingsAddBtn:hover {
   border-color: var(--color-primary);
   background: #f3f8fc;
+}
+
+.settingsResetBtn {
+  border: 1px solid #f0c0bc;
+  background: #fff;
+  color: #b42318;
+  border-radius: var(--modal-control-radius);
+  padding: 0.45rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+
+.settingsResetBtn:hover {
+  border-color: #b42318;
+  background: #fff7f8;
 }
 
 .settingsError {
@@ -494,18 +518,83 @@
 .settingsUserItem {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
   padding: 0.85rem;
   border: 1px solid #e6ebf0;
   border-radius: 12px;
   background: #fafcfd;
 }
 
-.settingsUserRow {
+.settingsUserHeader {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
+  grid-template-columns: auto 1fr 1fr auto;
   gap: 0.65rem;
   align-items: end;
+}
+
+.settingsUserToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-bottom: 0.15rem;
+  padding: 0;
+  border: 1px solid #d4dee8;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-muted-strong);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.settingsUserToggle:hover {
+  background: #f3f7fa;
+  border-color: #b8c8d8;
+  color: var(--color-text);
+}
+
+.settingsUserToggleIcon {
+  display: block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settingsUserItem.is-expanded .settingsUserToggleIcon {
+  transform: rotate(45deg);
+}
+
+.settingsUserDetails {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settingsUserItem.is-expanded .settingsUserDetails {
+  grid-template-rows: 1fr;
+}
+
+.settingsUserDetailsInner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.settingsUserItem.is-expanded .settingsUserDetailsInner {
+  opacity: 1;
+  padding-top: 0.75rem;
+}
+
+.settingsUserFieldPassword {
+  max-width: 14rem;
 }
 
 .settingsUserField {
@@ -525,7 +614,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  padding-top: 0.15rem;
+  padding-top: 0.65rem;
   border-top: 1px dashed #e0e7ee;
 }
 
@@ -595,12 +684,8 @@
     max-height: 8.5rem;
   }
 
-  .settingsUserItem {
-    grid-template-columns: 1fr;
-  }
-
-  .settingsUserRow {
-    grid-template-columns: 1fr;
+  .settingsUserHeader {
+    grid-template-columns: auto 1fr;
   }
 
   .settingsUserRemove {

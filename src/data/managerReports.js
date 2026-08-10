@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'training-facilities-manager-reports';
+import { getData, setData } from './dataStore.js';
 
 /**
  * @typedef {'forgot_password' | 'facility_created' | 'facility_updated' | 'facility_deleted' | 'manager_request'} ManagerReportType
@@ -25,25 +25,19 @@ const STORAGE_KEY = 'training-facilities-manager-reports';
  * @returns {ManagerReport[]}
  */
 export function loadManagerReports() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const data = JSON.parse(raw);
-    if (!Array.isArray(data)) return [];
-    return data
-      .map((item) => normalizeReport(item))
-      .filter((item) => item.managerName)
-      .sort((a, b) => b.createdAt - a.createdAt);
-  } catch {
-    return [];
-  }
+  const data = getData('manager-reports');
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((item) => normalizeReport(item))
+    .filter((item) => item.managerName)
+    .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 /**
  * @param {ManagerReport[]} reports
  */
 function saveManagerReports(reports) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+  setData('manager-reports', reports);
 }
 
 /**

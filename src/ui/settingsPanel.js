@@ -2,7 +2,11 @@ import {
   CATALOG_KEYS,
   CATALOG_LABELS,
   loadOptionCatalogs,
+  loadHiddenCatalogs,
   saveOptionCatalogs,
+  countCatalogOptionUsage,
+  defaultOptionCatalogs,
+  defaultHiddenCatalogs,
 } from '../data/optionCatalogs.js';
 import {
   loadFacilityManagers,
@@ -26,8 +30,12 @@ let onCatalogsChanged = null;
 
 /** @type {Record<string, string[]>} */
 let draft = {};
+/** @type {Record<string, string[]>} */
+let hiddenDraft = {};
 /** @type {import('../data/facilityManagers.js').FacilityManager[]} */
 let usersDraft = [];
+/** @type {Set<string>} */
+let expandedUserIds = new Set();
 /** @type {{ northFromLat: string, southBelowLat: string }} */
 let mapLayoutDraft = {
   northFromLat: String(DEFAULT_MAP_REGION_LAYOUT.northFromLat),
@@ -50,6 +58,7 @@ export function initSettingsPanel(options = {}) {
   document.getElementById('settingsCancel')?.addEventListener('click', () => closeSettingsPanel());
   document.getElementById('settingsSave')?.addEventListener('click', saveSettings);
   document.getElementById('settingsAddItem')?.addEventListener('click', addDraftItem);
+  document.getElementById('settingsResetOptions')?.addEventListener('click', resetOptionsDraft);
   document.getElementById('settingsAddUser')?.addEventListener('click', addUserDraftItem);
 
   document.querySelectorAll('[data-settings-tab]').forEach((btn) => {
@@ -76,10 +85,12 @@ export function openSettingsPanel() {
   window.clearTimeout(closeTimer);
   isClosing = false;
   draft = structuredClone(loadOptionCatalogs());
+  hiddenDraft = structuredClone(loadHiddenCatalogs());
   usersDraft = structuredClone(loadFacilityManagers()).map((user) => ({
     ...user,
     facilityIds: [...(user.facilityIds ?? [])],
   }));
+  expandedUserIds = new Set();
   const layout = loadMapRegionLayout();
   mapLayoutDraft = {
     northFromLat: layout.northFromLat.toFixed(6),
@@ -288,11 +299,43 @@ function handleItemAction(action, index) {
   } else if (action === 'down' && index < items.length - 1) {
     [items[index], items[index + 1]] = [items[index + 1], items[index]];
   } else if (action === 'remove') {
-    if (items.length <= 1) {
-      showSettingsError('חייבת להישאר לפחות אפשרות אחת ברשימה');
+    const value = String(items[index] ?? '').trim();
+    if (!value) {
+      items.splice(index, 1);
+      clearSettingsError();
+      renderActiveList();
       return;
     }
+
+    const usageCount = countCatalogOptionUsage(activeKey, value, state.facilitiesData);
+    const label = CATALOG_LABELS[activeKey];
+
+    let confirmMessage;
+    if (usageCount > 0) {
+      confirmMessage =
+        usageCount === 1
+          ? `האפשרות "${value}" בשימוש במתקן אחד.\n\nהאם להסיר אותה מרשימת "${label}"?\nהמתקן הקיים יישמר, אך לא ניתן יהיה לבחור אפשרות זו ביצירה חדשה.`
+          : `האפשרות "${value}" בשימוש ב-${usageCount} מתקנים.\n\nהאם להסיר אותה מרשימת "${label}"?\nהמתקנים הקיימים יישמרו, אך לא ניתן יהיה לבחור אפשרות זו ביצירה חדשה.`;
+    } else {
+      if (items.length <= 1) {
+        showSettingsError('חייבת להישאר לפחות אפשרות אחת ברשימה');
+        return;
+      }
+      confirmMessage = `למחוק את האפשרות "${value}" מרשימת "${label}"?`;
+    }
+
+    if (!window.confirm(confirmMessage)) return;
+
     items.splice(index, 1);
+
+    if (usageCount > 0) {
+      if (!hiddenDraft[activeKey]) hiddenDraft[activeKey] = [];
+      if (!hiddenDraft[activeKey].includes(value)) {
+        hiddenDraft[activeKey].push(value);
+      }
+    } else if (hiddenDraft[activeKey]) {
+      hiddenDraft[activeKey] = hiddenDraft[activeKey].filter((item) => item !== value);
+    }
   } else {
     return;
   }
@@ -310,6 +353,21 @@ function addDraftItem() {
   const list = document.getElementById('settingsList');
   const lastInput = list?.querySelector('.settingsItem:last-child .settingsItemInput');
   lastInput?.focus();
+}
+
+function resetOptionsDraft() {
+  const confirmMessage =
+    'לאפס את כל רשימות האפשרויות לברירת המחדל?\n\nכל השינויים שביצעתם ברשימות יוחלפו בערכי ברירת המחדל. לחצו "שמור" כדי לשמור את האיפוס.';
+
+  if (!window.confirm(confirmMessage)) return;
+
+  draft = structuredClone(defaultOptionCatalogs());
+  hiddenDraft = structuredClone(defaultHiddenCatalogs());
+  activeKey = CATALOG_KEYS[0];
+
+  clearSettingsError();
+  renderNav();
+  renderActiveList();
 }
 
 function getFacilityOptions() {
@@ -361,9 +419,19 @@ function renderUsersList() {
             </div>
           `;
 
+      const isExpanded = expandedUserIds.has(user.id);
       return `
-      <li class="settingsUserItem" data-index="${index}">
-        <div class="settingsUserRow">
+      <li class="settingsUserItem${isExpanded ? ' is-expanded' : ''}" data-index="${index}" data-user-id="${escapeAttr(user.id)}">
+        <div class="settingsUserHeader">
+          <button
+            type="button"
+            class="settingsUserToggle"
+            data-action="toggle-user"
+            aria-expanded="${isExpanded ? 'true' : 'false'}"
+            aria-label="${isExpanded ? 'סגור פרטים' : 'הצג פרטים'}"
+          >
+            <span class="settingsUserToggleIcon" aria-hidden="true"></span>
+          </button>
           <label class="settingsUserField">
             <span>שם</span>
             <input
@@ -386,17 +454,6 @@ function renderUsersList() {
               autocomplete="off"
             />
           </label>
-          <label class="settingsUserField">
-            <span>סיסמה</span>
-            <input
-              type="text"
-              class="settingsItemInput"
-              data-field="password"
-              value="${escapeAttr(user.password)}"
-              placeholder="סיסמה לכניסה"
-              autocomplete="off"
-            />
-          </label>
           <button
             type="button"
             class="settingsIconBtn settingsIconBtnDanger settingsUserRemove"
@@ -405,9 +462,24 @@ function renderUsersList() {
             aria-label="מחק מנהל"
           >×</button>
         </div>
-        <div class="settingsUserFacilities">
-          <span class="settingsUserFacilitiesLabel">מתקנים בניהול</span>
-          ${facilitiesHtml}
+        <div class="settingsUserDetails">
+          <div class="settingsUserDetailsInner">
+            <label class="settingsUserField settingsUserFieldPassword">
+              <span>סיסמה</span>
+              <input
+                type="text"
+                class="settingsItemInput"
+                data-field="password"
+                value="${escapeAttr(user.password)}"
+                placeholder="סיסמה לכניסה"
+                autocomplete="off"
+              />
+            </label>
+            <div class="settingsUserFacilities">
+              <span class="settingsUserFacilitiesLabel">מתקנים בניהול</span>
+              ${facilitiesHtml}
+            </div>
+          </div>
         </div>
       </li>
     `;
@@ -441,21 +513,41 @@ function renderUsersList() {
       const row = btn.closest('.settingsUserItem');
       const index = Number(row?.dataset.index);
       if (!Number.isInteger(index)) return;
+      const userId = usersDraft[index]?.id;
+      if (userId) expandedUserIds.delete(userId);
       usersDraft.splice(index, 1);
       clearUsersError();
       renderUsersList();
     });
   });
+
+  list.querySelectorAll('[data-action="toggle-user"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('.settingsUserItem');
+      const userId = row?.dataset.userId;
+      if (!row || !userId) return;
+
+      const willExpand = !row.classList.contains('is-expanded');
+      row.classList.toggle('is-expanded', willExpand);
+      btn.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+      btn.setAttribute('aria-label', willExpand ? 'סגור פרטים' : 'הצג פרטים');
+
+      if (willExpand) expandedUserIds.add(userId);
+      else expandedUserIds.delete(userId);
+    });
+  });
 }
 
 function addUserDraftItem() {
+  const id = createManagerId();
   usersDraft.push({
-    id: createManagerId(),
+    id,
     name: '',
     personalNumber: '',
     password: '',
     facilityIds: [],
   });
+  expandedUserIds.add(id);
   clearUsersError();
   renderUsersList();
 
@@ -498,7 +590,7 @@ function saveSettings() {
       seen.add(value);
       next.push(value);
     }
-    if (next.length === 0) {
+    if (next.length === 0 && (hiddenDraft[key] ?? []).length === 0) {
       showSettingsError(`לא ניתן לשמור רשימה ריקה (${CATALOG_LABELS[key]})`);
       setActiveTab('options');
       activeKey = key;
@@ -507,6 +599,15 @@ function saveSettings() {
       return;
     }
     cleaned[key] = next;
+  }
+
+  /** @type {Record<string, string[]>} */
+  const cleanedHidden = {};
+  for (const key of CATALOG_KEYS) {
+    const activeSet = new Set(cleaned[key] ?? []);
+    cleanedHidden[key] = (hiddenDraft[key] ?? [])
+      .map((raw) => String(raw ?? '').trim())
+      .filter((value) => value && !activeSet.has(value));
   }
 
   const cleanedUsers = [];
@@ -569,7 +670,7 @@ function saveSettings() {
     return;
   }
 
-  saveOptionCatalogs(/** @type {any} */ (cleaned));
+  saveOptionCatalogs(/** @type {any} */ (cleaned), /** @type {any} */ (cleanedHidden));
   saveFacilityManagers(cleanedUsers);
   saveMapRegionLayout(layout);
   reclassifyFacilitiesByLayout(layout);

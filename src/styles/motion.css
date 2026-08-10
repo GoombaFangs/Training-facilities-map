@@ -20,10 +20,6 @@
   animation: gateCardIn 0.65s var(--ease-out) both;
 }
 
-.roleGateLogo {
-  animation: floatSoft 4s ease-in-out infinite;
-}
-
 .roleGateTitle,
 .roleGateCard h1 {
   animation: fadeUp 0.55s var(--ease-out) 0.08s both;

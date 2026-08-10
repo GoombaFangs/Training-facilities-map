@@ -39,9 +39,9 @@ let adminMapCreateBound = false;
 let pickingFromForm = false;
 let pickEscapeHandler = null;
 let currentStep = 1;
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 3;
 /**
- * Shared image gallery for step 4 — each image is assigned to a facility.
+ * Shared image gallery for step 3 — each image is assigned to a facility.
  * @type {{ src: string, facilityLocalId: string }[]}
  */
 let uploadedImages = [];
@@ -119,6 +119,9 @@ export function initFacilityForm({ onSaved: savedCb }) {
 
   refillAllOptionLists();
   bindImageUpload();
+  document.getElementById('formFacilityName')?.addEventListener('input', () => {
+    if (currentStep === 3) updateFacilityPhotosMeta();
+  });
   renderUploadedImages();
 }
 
@@ -277,7 +280,7 @@ function createEmptyFacilityDraft(typeOfFacility) {
   const type = String(typeOfFacility || types[0] || '').trim();
   return {
     localId: `fac_${Date.now()}_${facilityDraftSeq++}`,
-    name: type || `מתקן ${draftFacilities.length + 1}`,
+    name: '',
     statusOfFacility: statuses[0] || FACILITY_STATUSES[0]?.value || 'פעיל',
     locationOfFacility: '',
     typeOfFacility: type,
@@ -298,10 +301,10 @@ function createEmptyFacilityDraft(typeOfFacility) {
  * @returns {string}
  */
 function getFacilityDraftLabel(facility, index) {
-  const type = String(facility?.typeOfFacility || '').trim();
-  if (type) return type;
   const name = String(facility?.name || '').trim();
   if (name) return name;
+  const type = String(facility?.typeOfFacility || '').trim();
+  if (type) return type;
   return `מתקן ${index + 1}`;
 }
 
@@ -310,10 +313,8 @@ function getFacilityDraftLabel(facility, index) {
  * @param {string} typeValue
  * @param {number} index
  */
-function applyFacilityType(facility, typeValue, index) {
-  const value = String(typeValue || '').trim();
-  facility.typeOfFacility = value;
-  facility.name = value || `מתקן ${index + 1}`;
+function applyFacilityType(facility, typeValue) {
+  facility.typeOfFacility = String(typeValue || '').trim();
 }
 
 /**
@@ -332,7 +333,7 @@ function facilityEntryToDraft(entry, index, waypointProps = {}) {
 
   return {
     localId: `fac_edit_${index}_${facilityDraftSeq++}`,
-    name: String(entry?.name || entry?.typeOfFacility || `מתקן ${index + 1}`).trim(),
+    name: String(entry?.name || '').trim(),
     statusOfFacility: String(
       entry?.statusOfFacility || waypointProps.statusOfFacility || FACILITY_STATUSES[0]?.value || 'פעיל',
     ),
@@ -504,6 +505,7 @@ function renderFacilityEditorTabs(containerId = 'facilityEditorTabs') {
       if (currentStep === 3) {
         renderFacilityEditorTabs('facilityEditorTabs');
         loadFacilityEditorFromDraft();
+        renderUploadedImages();
       }
     });
   });
@@ -513,6 +515,7 @@ function saveFacilityEditorToDraft() {
   const facility = draftFacilities[activeFacilityIndex];
   if (!facility) return;
 
+  facility.name = document.getElementById('formFacilityName').value.trim();
   facility.statusOfFacility = document.getElementById('formStatus').value;
   facility.locationOfFacility = document.getElementById('formLocation').value.trim();
   facility.specificTypeOfFacility = getSelectOrOtherValue(
@@ -532,6 +535,7 @@ function loadFacilityEditorFromDraft() {
   const facility = draftFacilities[activeFacilityIndex];
   if (!facility) return;
 
+  document.getElementById('formFacilityName').value = facility.name || '';
   document.getElementById('formStatus').value =
     facility.statusOfFacility || getMergedStatuses()[0] || FACILITY_STATUSES[0]?.value || 'פעיל';
   document.getElementById('formLocation').value = facility.locationOfFacility || '';
@@ -542,6 +546,7 @@ function loadFacilityEditorFromDraft() {
   document.getElementById('formFacilityContactRank').value = facility.contactRank ?? '';
   document.getElementById('formFacilityContactPhone').value = facility.contactPhone ?? '';
   document.getElementById('formComments').value = facility.comments ?? '';
+  renderUploadedImages();
 }
 
 /** Flatten draft facility images into the shared gallery. */
@@ -575,8 +580,32 @@ function syncImagesToDraftFacilities() {
   }
 }
 
+function getActiveFacilityLocalId() {
+  return draftFacilities[activeFacilityIndex]?.localId ?? '';
+}
+
+function getActiveFacilityImageCount() {
+  const activeId = getActiveFacilityLocalId();
+  if (!activeId) return 0;
+  return uploadedImages.filter((item) => item.facilityLocalId === activeId).length;
+}
+
+function updateFacilityPhotosMeta() {
+  const meta = document.getElementById('formFacilityPhotosMeta');
+  if (!meta) return;
+  const facility = draftFacilities[activeFacilityIndex];
+  if (!facility) {
+    meta.textContent = '';
+    return;
+  }
+  const inputName = document.getElementById('formFacilityName')?.value.trim();
+  const label = inputName || getFacilityDraftLabel(facility, activeFacilityIndex);
+  const count = getActiveFacilityImageCount();
+  meta.textContent = `${label} · ${count}/${MAX_UPLOAD_IMAGES}`;
+}
+
 function getImageUploadLimit() {
-  return Math.max(MAX_UPLOAD_IMAGES, draftFacilities.length * MAX_UPLOAD_IMAGES);
+  return MAX_UPLOAD_IMAGES;
 }
 
 /**
@@ -584,8 +613,10 @@ function getImageUploadLimit() {
  */
 function prepareLeaveStep(step) {
   if (step === 2) syncFacilityListFromDom();
-  if (step === 3) saveFacilityEditorToDraft();
-  if (step === 4) syncImagesToDraftFacilities();
+  if (step === 3) {
+    saveFacilityEditorToDraft();
+    syncImagesToDraftFacilities();
+  }
 }
 
 function getMergedFacilityTypes() {
@@ -640,8 +671,10 @@ export function refreshFacilityFormOptions() {
  * Keep current form values while refreshing option lists after saving customs.
  */
 function refreshOptionListsPreservingValues() {
-  if (currentStep === 3) saveFacilityEditorToDraft();
-  if (currentStep === 4) syncImagesToDraftFacilities();
+  if (currentStep === 3) {
+    saveFacilityEditorToDraft();
+    syncImagesToDraftFacilities();
+  }
 
   const snapshot = {
     name: document.getElementById('formName').value,
@@ -668,7 +701,6 @@ function refreshOptionListsPreservingValues() {
   } else if (currentStep === 3) {
     loadFacilityEditorFromDraft();
     renderFacilityEditorTabs('facilityEditorTabs');
-  } else if (currentStep === 4) {
     loadImagesFromDraftFacilities();
   }
 }
@@ -845,13 +877,14 @@ function bindImageUpload() {
   imageUploadBound = true;
 
   const input = document.getElementById('formImgInput');
-  const zone = document.getElementById('formImgDropzone');
-  if (!input || !zone) return;
+  const body = document.querySelector('.facilityPhotosBody');
+  if (!input || !body) return;
 
-  zone.addEventListener('click', () => {
-    const limit = getImageUploadLimit();
-    if (uploadedImages.length >= limit) {
-      showError(`ניתן להעלות עד ${limit} תמונות`);
+  body.addEventListener('click', (event) => {
+    const addTile = event.target.closest('.facilityPhotosAddTile');
+    if (!addTile || addTile.disabled) return;
+    if (getActiveFacilityImageCount() >= MAX_UPLOAD_IMAGES) {
+      showError(`ניתן להעלות עד ${MAX_UPLOAD_IMAGES} תמונות למתקן`);
       return;
     }
     input.click();
@@ -863,20 +896,22 @@ function bindImageUpload() {
     await addImageFiles(files);
   });
 
-  zone.addEventListener('dragenter', (event) => {
+  body.addEventListener('dragenter', (event) => {
+    if (!event.target.closest('.facilityPhotosAddTile, .facilityPhotosBody')) return;
     event.preventDefault();
-    zone.classList.add('is-dragover');
+    body.classList.add('is-dragover');
   });
-  zone.addEventListener('dragover', (event) => {
+  body.addEventListener('dragover', (event) => {
     event.preventDefault();
-    zone.classList.add('is-dragover');
+    body.classList.add('is-dragover');
   });
-  zone.addEventListener('dragleave', () => {
-    zone.classList.remove('is-dragover');
+  body.addEventListener('dragleave', (event) => {
+    if (event.currentTarget.contains(event.relatedTarget)) return;
+    body.classList.remove('is-dragover');
   });
-  zone.addEventListener('drop', async (event) => {
+  body.addEventListener('drop', async (event) => {
     event.preventDefault();
-    zone.classList.remove('is-dragover');
+    body.classList.remove('is-dragover');
     const files = [...(event.dataTransfer?.files ?? [])].filter((file) =>
       file.type.startsWith('image/'),
     );
@@ -891,26 +926,28 @@ async function addImageFiles(files) {
   if (!files.length) return;
   clearError();
 
-  const limit = getImageUploadLimit();
-  const remaining = limit - uploadedImages.length;
+  const activeId = getActiveFacilityLocalId();
+  if (!activeId) {
+    showError('יש לבחור מתקן לפני העלאת תמונות');
+    return;
+  }
+
+  const remaining = MAX_UPLOAD_IMAGES - getActiveFacilityImageCount();
   if (remaining <= 0) {
-    showError(`ניתן להעלות עד ${limit} תמונות`);
+    showError(`ניתן להעלות עד ${MAX_UPLOAD_IMAGES} תמונות למתקן`);
     return;
   }
 
   const batch = files.slice(0, remaining);
   if (files.length > remaining) {
-    showError(`נוספו ${batch.length} תמונות בלבד (מגבלה: ${limit})`);
+    showError(`נוספו ${batch.length} תמונות בלבד (מגבלה: ${MAX_UPLOAD_IMAGES} למתקן)`);
   }
-
-  const defaultFacilityId =
-    draftFacilities[activeFacilityIndex]?.localId || draftFacilities[0]?.localId || '';
 
   try {
     const dataUrls = await Promise.all(batch.map((file) => compressImageFile(file)));
     uploadedImages = [
       ...uploadedImages,
-      ...dataUrls.map((src) => ({ src, facilityLocalId: defaultFacilityId })),
+      ...dataUrls.map((src) => ({ src, facilityLocalId: activeId })),
     ];
     renderUploadedImages();
   } catch {
@@ -974,57 +1011,56 @@ function setUploadedImages(images) {
 
 function renderUploadedImages() {
   const picker = document.getElementById('formImgPicker');
-  const zone = document.getElementById('formImgDropzone');
   if (!picker) return;
 
-  const facilityOptions = draftFacilities
-    .map(
-      (facility, index) =>
-        `<option value="${escapeAttr(facility.localId)}">${escapeHtml(
-          getFacilityDraftLabel(facility, index),
-        )}</option>`,
-    )
-    .join('');
+  const activeId = getActiveFacilityLocalId();
+  const visibleImages = uploadedImages
+    .map((item, globalIndex) => ({ ...item, globalIndex }))
+    .filter((item) => item.facilityLocalId === activeId);
 
-  picker.innerHTML = uploadedImages
+  const canAddMore = visibleImages.length < MAX_UPLOAD_IMAGES;
+  const isEmpty = visibleImages.length === 0;
+
+  const thumbsHtml = visibleImages
     .map(
       (item, index) => `
-      <div class="imagePickItem" role="listitem" data-index="${index}">
-        <div class="imagePickThumb">
+      <div class="facilityPhotoItem" role="listitem" data-index="${item.globalIndex}">
+        <div class="facilityPhotoThumb">
           <img src="${escapeAttr(item.src)}" alt="תמונה ${index + 1}" />
           <button
             type="button"
-            class="imagePickRemove"
-            data-index="${index}"
+            class="facilityPhotoRemove"
+            data-index="${item.globalIndex}"
             aria-label="הסר תמונה ${index + 1}"
-          >×</button>
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
         </div>
-        <label class="imagePickFacility">
-          <span class="imagePickFacilityLabel">מתקן</span>
-          <select class="imagePickFacilitySelect" data-index="${index}" aria-label="שיוך תמונה ${index + 1} למתקן">
-            ${facilityOptions}
-          </select>
-        </label>
       </div>
     `,
     )
     .join('');
 
-  picker.querySelectorAll('.imagePickFacilitySelect').forEach((select) => {
-    const index = Number(select.dataset.index);
-    if (!Number.isInteger(index) || !uploadedImages[index]) return;
-    select.value = uploadedImages[index].facilityLocalId;
-    if (![...select.options].some((option) => option.value === select.value)) {
-      select.selectedIndex = 0;
-      uploadedImages[index].facilityLocalId = select.value;
-    }
-    select.addEventListener('change', () => {
-      if (!uploadedImages[index]) return;
-      uploadedImages[index].facilityLocalId = select.value;
-    });
-  });
+  const addTileHtml = canAddMore
+    ? `
+      <button
+        type="button"
+        class="facilityPhotosAddTile${isEmpty ? ' is-empty' : ''}"
+        aria-label="הוסף תמונות למתקן"
+      >
+        <span class="facilityPhotosAddIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M12 5v14M5 12h14" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span class="facilityPhotosAddLabel">${isEmpty ? 'הוסיפו תמונות' : 'הוסף'}</span>
+      </button>
+    `
+    : '';
 
-  picker.querySelectorAll('.imagePickRemove').forEach((btn) => {
+  picker.innerHTML = `${thumbsHtml}${addTileHtml}`;
+
+  picker.querySelectorAll('.facilityPhotoRemove').forEach((btn) => {
     btn.addEventListener('click', () => {
       const index = Number(btn.dataset.index);
       if (!Number.isInteger(index)) return;
@@ -1034,9 +1070,7 @@ function renderUploadedImages() {
     });
   });
 
-  if (zone) {
-    zone.disabled = uploadedImages.length >= getImageUploadLimit();
-  }
+  updateFacilityPhotosMeta();
 }
 
 function goNext() {
@@ -1085,7 +1119,6 @@ function goToStep(step) {
   } else if (step === 3) {
     renderFacilityEditorTabs('facilityEditorTabs');
     loadFacilityEditorFromDraft();
-  } else if (step === 4) {
     loadImagesFromDraftFacilities();
   }
 }
@@ -1444,7 +1477,7 @@ function onSubmit(event) {
       /quota/i.test(String(error?.message ?? ''));
     if (isQuota) {
       showError('אין מספיק מקום לשמירת התמונות. הסירו חלק מהן או בחרו תמונות קטנות יותר.');
-      goToStep(4);
+      goToStep(3);
       return;
     }
     throw error;
